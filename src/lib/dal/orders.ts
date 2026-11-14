@@ -41,16 +41,18 @@ export const METHOD_LABELS: Record<PaymentMethod, string> = {
   free: "Free enrolment",
 };
 
-export async function getOrderByReference(reference: string): Promise<(Order & { course_slug: string | null }) | null> {
+export async function getOrderByReference(
+  reference: string,
+): Promise<(Order & { course_slug: string | null; course_thumbnail: string | null }) | null> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("orders")
-    .select(`${ORDER_COLUMNS}, course:courses(slug)`)
+    .select(`${ORDER_COLUMNS}, course:courses(slug, thumbnail_path)`)
     .eq("reference", reference)
     .maybeSingle();
   if (!data) return null;
-  const { course, ...order } = data as unknown as Order & { course: { slug: string } | null };
-  return { ...norm(order), course_slug: course?.slug ?? null };
+  const { course, ...order } = data as unknown as Order & { course: { slug: string; thumbnail_path: string | null } | null };
+  return { ...norm(order), course_slug: course?.slug ?? null, course_thumbnail: course?.thumbnail_path ?? null };
 }
 
 export async function listMyOrders(userId: string): Promise<Order[]> {

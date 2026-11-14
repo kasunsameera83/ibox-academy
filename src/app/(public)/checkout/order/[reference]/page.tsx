@@ -7,7 +7,8 @@ import { Alert } from "@/components/ui/alert";
 import { ButtonLink } from "@/components/ui/button";
 import { OrderStatusPoller } from "@/features/checkout/order-status-poller";
 import { SlipUploader } from "@/features/checkout/slip-uploader";
-import { formatPrice } from "@/lib/courses/format";
+import { UnlockedCelebration } from "@/features/checkout/unlocked-celebration";
+import { formatPrice, mediaUrl } from "@/lib/courses/format";
 import { METHOD_LABELS, bankDetailsComplete, getBankDetails, getOrderByReference, isExpired } from "@/lib/dal/orders";
 import { getCurrentUser } from "@/lib/dal/session";
 import { param, type SearchParams } from "@/lib/utils";
@@ -41,10 +42,17 @@ export default async function OrderPage({ params, searchParams }: { params: Prom
   let body: ReactNode;
   if (order.status === "paid") {
     body = (
-      <Panel icon={<CheckCircle2 className="size-7" />} tone="bg-success-soft text-success-ink" title="Payment confirmed. Your course is ready.">
-        <p className="text-ink-muted">“{order.course_title}” is now in My Learning.</p>
-        <ButtonLink href="/app/student/learning" size="lg" className="rounded-full">Start learning</ButtonLink>
-      </Panel>
+      <div className="grid items-center gap-8 md:grid-cols-[1fr_1.1fr]">
+        <UnlockedCelebration title={order.course_title} thumbnail={mediaUrl(order.course_thumbnail)} />
+        <div className="flex flex-col items-start gap-4">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-success-soft px-3 py-1 text-sm font-bold text-success-ink">
+            <CheckCircle2 className="size-4" aria-hidden="true" /> Payment confirmed
+          </span>
+          <h1 className="text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">Your course is ready.</h1>
+          <p className="text-ink-muted">“{order.course_title}” is now in My Learning. Jump in whenever you like.</p>
+          <ButtonLink href="/app/student/learning" size="lg" className="rounded-full">Start learning</ButtonLink>
+        </div>
+      </div>
     );
   } else if (order.status === "under_review") {
     body = (

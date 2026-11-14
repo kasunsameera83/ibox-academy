@@ -7,10 +7,11 @@ import { HelpCircle, LogOut, Menu, X } from "lucide-react";
 import type { NavItem } from "@/config/navigation";
 import { Logo } from "@/components/brand/logo";
 import { signOutAction } from "@/app/(auth)/actions";
+import { NotificationBell } from "@/features/notifications/notification-bell";
 import { cn } from "@/lib/utils";
 import { navIcons } from "./nav-icons";
 
-type ShellUser = { name: string; email: string; roleLabel: string };
+type ShellUser = { id: string; name: string; email: string; roleLabel: string; notifications: boolean };
 
 function isActive(pathname: string, href: string, rootHref: string) {
   if (href === rootHref) return pathname === href;
@@ -148,6 +149,7 @@ export function DashboardShell({
             <Logo href={rootHref} showName={false} />
           </div>
           <div className="flex-1" />
+          {user.notifications && <NotificationBell userId={user.id} />}
           <Link href="/help" className="flex items-center gap-1.5 rounded-control px-3 py-2 text-sm font-medium text-ink-muted hover:bg-canvas hover:text-ink">
             <HelpCircle className="size-4" aria-hidden="true" />
             <span className="hidden sm:inline">Help</span>

@@ -4,6 +4,9 @@ import { ROLE_LABELS } from "@/lib/auth/permissions";
 /** Minimal, non-sensitive user data passed to client components. */
 export function toShellUser(user: SessionUser) {
   return {
+    id: user.id,
+    // Live alerts for the Owner and staff (learner notifications come later).
+    notifications: user.role !== "student",
     name: user.fullName || user.email.split("@")[0] || "Account",
     email: user.email,
     roleLabel: ROLE_LABELS[user.role],
