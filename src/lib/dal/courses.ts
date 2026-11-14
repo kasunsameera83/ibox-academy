@@ -109,7 +109,7 @@ export async function listCoursesForTeam(filters: { status?: string; q?: string 
   if (filters.status) query = query.eq("status", filters.status);
   if (filters.q) query = query.ilike("title", `%${sanitizeSearch(filters.q)}%`);
   const { data } = await query;
-  return ((data ?? []) as (Omit<CourseListItem, "lesson_count"> & { lessons: { count: number }[] })[]).map((c) => ({
+  return ((data ?? []) as unknown as (Omit<CourseListItem, "lesson_count"> & { lessons: { count: number }[] })[]).map((c) => ({
     ...c,
     price_lkr: c.price_lkr === null ? null : Number(c.price_lkr),
     sale_price_lkr: c.sale_price_lkr === null ? null : Number(c.sale_price_lkr),

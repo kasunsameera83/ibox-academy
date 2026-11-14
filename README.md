@@ -29,6 +29,8 @@ Components never use raw colours or the brand name directly — they read from t
    2. `20261114010000_courses.sql`
    3. `20261114020000_lesson_types.sql`
    4. `20261114030000_course_intro_video.sql`
+   5. `20261114040000_mfa_enforcement.sql`
+   6. `20261114050000_orders_enrolments.sql`
 5. **Environment variables** — copy `.env.example` to `.env.local` and fill in
    `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
    (Supabase → Project Settings → API Keys).
@@ -60,6 +62,20 @@ Components never use raw colours or the brand name directly — they read from t
 Add the four `BUNNY_STREAM_*` values to `.env.local` (see `.env.example`) and restart `npm run dev`.
 In the Bunny library's **Security** settings: direct play off, block direct URL access on, embed view
 token authentication on, CDN token authentication on, and add your site's domain to **Allowed domains**.
+
+## Payments (PayHere + bank transfer)
+
+- Owner → Settings → Payments: enter your bank details to switch on bank transfer.
+- Add `SUPABASE_SECRET_KEY`, `PAYHERE_MERCHANT_ID`, `PAYHERE_MERCHANT_SECRET` and `PAYHERE_MODE=sandbox`
+  to `.env.local` to switch on card payments.
+- PayHere confirms payments by calling `/api/payhere/notify` on your site. It can't reach `localhost`,
+  so to test card payments locally run a tunnel (e.g. `npx cloudflared tunnel --url http://localhost:3000`),
+  set `NEXT_PUBLIC_SITE_URL` to the tunnel address, and add that domain in PayHere's sandbox settings.
+
+## Two-step verification
+
+The Owner account must use an authenticator app. If the Owner loses their phone, reset it in
+Supabase → Authentication → Users → (user) → remove the MFA factor, then sign in and set it up again.
 
 ## Scripts
 

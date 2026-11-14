@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: "Settings" };
 
 const SECTIONS = [
   { href: "/app/owner/settings/integrations", icon: Plug, title: "Integrations", text: "Video hosting and other connected services.", live: true },
-  { href: null, icon: CreditCard, title: "Payments", text: "PayHere and bank transfer details.", live: false, phase: 3 },
+  { href: "/app/owner/settings/payments", icon: CreditCard, title: "Payments", text: "PayHere and bank transfer details.", live: true },
   { href: null, icon: Globe, title: "Platform identity", text: "Brand, locale, currency and contact details.", live: false, phase: 4 },
   { href: null, icon: Mail, title: "Email templates", text: "Receipts, reminders and account emails.", live: false, phase: 4 },
 ];
@@ -31,7 +31,7 @@ export default async function SettingsPage() {
                   <span className="block font-semibold text-ink">{title}</span>
                   <span className="block text-sm text-ink-muted">{text}</span>
                 </span>
-                {live ? <ChevronRight className="size-5 text-ink-muted" aria-hidden="true" /> : <span className="text-xs font-semibold text-ink-muted">Phase {phase}</span>}
+                {live ? <ChevronRight className="size-5 text-ink-muted" aria-hidden="true" /> : <span className="text-xs font-semibold text-ink-muted">Phase {phase ?? 4}</span>}
               </>
             );
             return (

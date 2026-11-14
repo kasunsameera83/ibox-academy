@@ -20,6 +20,8 @@ export type SessionUser = {
   status: AccountStatus;
   /** Explicit grants for staff. Owner is implicitly allowed everything. */
   permissions: PermissionKey[];
+  /** Authenticator assurance level of this session: "aal2" after two-step verification. */
+  aal: "aal1" | "aal2";
 };
 
 type ProfileRow = {
@@ -70,8 +72,14 @@ export const getCurrentUser = cache(async (): Promise<SessionUser | null> => {
     role: profile.role as AppRole,
     status: profile.status,
     permissions,
+    aal: data.claims.aal === "aal2" ? "aal2" : "aal1",
   };
 });
+
+/** Roles that must use two-step verification. Staff will be added in Phase 5. */
+function requiresMfa(user: SessionUser) {
+  return user.role === "owner";
+}
 
 export function hasPermission(user: SessionUser, key: PermissionKey): boolean {
   if (user.status !== "active") return false;
@@ -91,6 +99,8 @@ export async function requireUser(): Promise<SessionUser> {
 export async function requireRole(...roles: AppRole[]): Promise<SessionUser> {
   const user = await requireUser();
   if (!roles.includes(user.role)) redirect("/access-denied");
+  // Privileged accounts must complete two-step verification for this session.
+  if (requiresMfa(user) && user.aal !== "aal2") redirect("/mfa");
   return user;
 }
 

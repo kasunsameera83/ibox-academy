@@ -13,6 +13,8 @@ import { LESSON_TYPES, curriculumStats, lessonMissing, lessonSeconds } from "@/l
 import type { Lesson } from "@/lib/courses/types";
 import { LANGUAGE_LABELS, LEVEL_LABELS } from "@/lib/courses/types";
 import { getCourseBySlug } from "@/lib/dal/courses";
+import { hasActiveEnrolment } from "@/lib/dal/orders";
+import { getCurrentUser } from "@/lib/dal/session";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -40,6 +42,9 @@ export default async function CourseDetailPage({ params }: Props) {
   const course = await getCourseBySlug(slug);
   if (!course) notFound();
 
+  const user = await getCurrentUser();
+  const enrolled = user ? await hasActiveEnrolment(user.id, course.id) : false;
+  const ctaHref = enrolled ? "/app/student/learning" : `/checkout/${course.slug}`;
   const stats = curriculumStats(course.sections);
   const price = effectivePrice(course);
   const onSale = course.sale_price_lkr !== null && course.price_lkr !== null;
@@ -197,9 +202,10 @@ export default async function CourseDetailPage({ params }: Props) {
                 <span className="text-3xl font-extrabold tracking-tight text-ink">{formatPrice(price)}</span>
                 {onSale && <span className="text-ink-muted line-through">{formatPrice(course.price_lkr)}</span>}
               </div>
-              <ButtonLink href={`/checkout/${course.slug}`} size="lg" fullWidth className="rounded-full">
-                {price === 0 ? "Enrol for free" : "Buy now"}
+              <ButtonLink href={ctaHref} size="lg" fullWidth className="rounded-full">
+                {enrolled ? "Go to My Learning" : price === 0 ? "Enrol for free" : "Buy now"}
               </ButtonLink>
+              {enrolled && <p className="text-center text-sm font-semibold text-success-ink">You're enrolled in this course.</p>}
               <ul className="flex flex-col gap-2 text-sm text-ink-muted">
                 <li className="flex items-center gap-2"><CheckCircle2 className="size-4 text-success" aria-hidden="true" /> {accessLabel(course.access_type, course.access_days)}</li>
                 <li className="flex items-center gap-2"><CheckCircle2 className="size-4 text-success" aria-hidden="true" /> Pay by card or bank transfer, in LKR</li>
@@ -219,7 +225,7 @@ export default async function CourseDetailPage({ params }: Props) {
           <p className="text-lg font-extrabold leading-tight text-ink">{formatPrice(price)}</p>
           {onSale && <p className="text-xs text-ink-muted line-through">{formatPrice(course.price_lkr)}</p>}
         </div>
-        <ButtonLink href={`/checkout/${course.slug}`} className="rounded-full">{price === 0 ? "Enrol for free" : "Buy now"}</ButtonLink>
+        <ButtonLink href={ctaHref} className="rounded-full">{enrolled ? "My Learning" : price === 0 ? "Enrol for free" : "Buy now"}</ButtonLink>
       </div>
       <div className="h-20 lg:hidden" aria-hidden="true" />
     </>

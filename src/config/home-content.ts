@@ -7,7 +7,7 @@ export const homeContent = {
     headline: "Learn the skills your feed keeps talking about.",
     subheading:
       "Short video lessons you can finish on the bus. Pay in rupees, learn at your own pace, and get a certificate when you finish.",
-    searchPlaceholder: "Try “video editing” or “freelancing”",
+    searchPlaceholder: "Try “video editing”",
     primaryCta: { label: "Find a course", href: "/courses" },
     secondaryCta: { label: "See how it works", href: "#how-it-works" },
     reassurance: ["Card or bank transfer", "Prices in LKR", "Preview lessons free"],

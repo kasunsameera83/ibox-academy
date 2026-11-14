@@ -35,7 +35,7 @@ export function Logo({
     <Link
       href={href}
       aria-label={`${brand.name} home`}
-      className={cn("inline-flex items-center gap-2.5 rounded-control", className)}
+      className={cn("inline-flex shrink-0 items-center gap-2.5 rounded-control", className)}
     >
       {fullLogo ? (
         // eslint-disable-next-line @next/next/no-img-element
@@ -44,7 +44,7 @@ export function Logo({
         <>
           <BrandMark />
           {showName && (
-            <span className={cn("text-lg font-bold tracking-tight", onDark ? "text-white" : "text-ink")}>
+            <span className={cn("whitespace-nowrap text-lg font-bold tracking-tight", onDark ? "text-white" : "text-ink")}>
               {brand.name}
             </span>
           )}

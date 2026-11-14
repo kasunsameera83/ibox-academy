@@ -4,7 +4,7 @@ import type { PermissionKey } from "@/lib/auth/permissions";
 export type NavIcon =
   | "home" | "book" | "compass" | "heart" | "award" | "receipt" | "help" | "settings"
   | "globe" | "folder" | "users" | "shield" | "cart" | "wallet" | "tag" | "life-buoy"
-  | "chart" | "lock" | "inbox" | "list" | "bell";
+  | "chart" | "lock" | "inbox" | "list" | "bell" | "user";
 
 export type NavItem = {
   label: string;
@@ -50,6 +50,7 @@ export const ownerNav: NavItem[] = [
   { label: "Reports", href: "/app/owner/reports", icon: "chart", phase: 4, description: "Sales, enrolments, completion and exports." },
   { label: "Security", href: "/app/owner/security", icon: "lock", phase: 4, description: "Login events, role changes, audit log and sessions." },
   { label: "Settings", href: "/app/owner/settings", icon: "settings", phase: 4, description: "Platform identity, locale, email templates and payment settings." },
+  { label: "My account", href: "/app/owner/account", icon: "user" },
 ];
 
 export const staffNav: NavItem[] = [

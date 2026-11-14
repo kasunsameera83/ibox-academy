@@ -9,7 +9,7 @@ type Size = "sm" | "md" | "lg" | "icon";
 const base =
   "inline-flex items-center justify-center gap-2 rounded-control font-semibold transition-colors " +
   "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand " +
-  "disabled:cursor-not-allowed disabled:opacity-60 select-none";
+  "disabled:cursor-not-allowed disabled:opacity-60 select-none whitespace-nowrap";
 
 const variants: Record<Variant, string> = {
   primary: "bg-brand text-on-brand hover:bg-brand-hover",

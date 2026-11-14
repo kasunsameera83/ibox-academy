@@ -70,9 +70,11 @@ export default async function IntegrationsPage() {
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
                 <h2 className="text-lg font-bold text-ink">Payments</h2>
-                <StatusBadge status="draft" label="Coming in Phase 3" />
               </div>
-              <p className="text-sm text-ink-muted">PayHere card payments and bank transfer verification.</p>
+              <p className="text-sm text-ink-muted">
+                PayHere card payments and bank transfer details are managed in{" "}
+                <Link href="/app/owner/settings/payments" className="font-semibold text-brand hover:underline">Settings → Payments</Link>.
+              </p>
             </div>
           </div>
         </Card>
