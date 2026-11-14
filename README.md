@@ -35,6 +35,7 @@ Components never use raw colours or the brand name directly — they read from t
    8. `20261114070000_learning.sql`
    9. `20261114080000_assignment_reviews.sql`
    10. `20261114090000_certificate_design.sql`
+   11. `20261114100000_people_admin.sql`
 5. **Environment variables** — copy `.env.example` to `.env.local` and fill in
    `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
    (Supabase → Project Settings → API Keys).

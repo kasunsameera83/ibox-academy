@@ -76,9 +76,9 @@ export const getCurrentUser = cache(async (): Promise<SessionUser | null> => {
   };
 });
 
-/** Roles that must use two-step verification. Staff will be added in Phase 5. */
+/** Roles that must use two-step verification (the database enforces this too). */
 function requiresMfa(user: SessionUser) {
-  return user.role === "owner";
+  return user.role === "owner" || user.role === "staff";
 }
 
 export function hasPermission(user: SessionUser, key: PermissionKey): boolean {

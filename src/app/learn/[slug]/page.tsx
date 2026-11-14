@@ -7,7 +7,7 @@ export default async function ResumeCoursePage({ params }: { params: Promise<{ s
   const { slug } = await params;
   const user = await getCurrentUser();
   if (!user) redirect(`/login?next=${encodeURIComponent(`/learn/${slug}`)}`);
-  if (user.role === "owner" && user.aal !== "aal2") redirect("/mfa");
+  if ((user.role === "owner" || user.role === "staff") && user.aal !== "aal2") redirect("/mfa");
 
   const data = await getLearnerCourse(slug, user);
   if (!data) redirect(`/courses/${encodeURIComponent(slug)}`);
