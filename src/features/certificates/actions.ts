@@ -51,7 +51,7 @@ export async function saveCertificateDesignAction(
     await supabase.storage.from("course-media").remove([previous]);
   }
 
-  await recordAudit(supabase, user.id, "course.certificate_design", { type: "course", id: courseId }, { template: design.template, enabled: design.enabled });
+  await recordAudit(user.id, "course.certificate_design", { type: "course", id: courseId }, { template: design.template, enabled: design.enabled });
   revalidateWorkspaces(`/courses/${courseId}`);
   revalidatePath("/certificates", "layout");
   return { ok: true };

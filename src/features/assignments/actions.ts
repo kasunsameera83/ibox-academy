@@ -23,7 +23,7 @@ export async function reviewAssignmentAction(input: { id: string; approve: boole
   const { error } = await supabase.rpc("review_assignment", { p_submission_id: id, p_approve: approve, p_feedback: feedback || null });
   if (error) return { ok: false, error: error.code === "22023" ? error.message : "The review couldn't be saved. Please try again." };
 
-  await recordAudit(supabase, user.id, approve ? "assignment.approve" : "assignment.request_changes", { type: "assignment_submission", id });
+  await recordAudit(user.id, approve ? "assignment.approve" : "assignment.request_changes", { type: "assignment_submission", id });
   revalidateWorkspaces("/assignments");
   revalidateWorkspaces(`/assignments/${id}`);
   return { ok: true };

@@ -53,7 +53,7 @@ export async function createCourseAction(_prev: FormState, formData: FormData): 
     .single();
   if (error || !data) return { error: "The course couldn't be created. Please try again.", values: { title } };
 
-  await recordAudit(supabase, user.id, "course.create", { type: "course", id: data.id });
+  await recordAudit(user.id, "course.create", { type: "course", id: data.id });
   revalidateWorkspaces("/courses");
   redirect(`${workspaceBase(user)}/courses/${data.id}?step=overview`);
 }
@@ -206,7 +206,7 @@ export async function savePricingAction(_prev: FormState, formData: FormData): P
     .select("slug")
     .single();
   if (error) return { error: "Changes couldn't be saved. Please try again.", values };
-  await recordAudit(supabase, user.id, "course.pricing_update", { type: "course", id }, { price_lkr: parsed.data.price });
+  await recordAudit(user.id, "course.pricing_update", { type: "course", id }, { price_lkr: parsed.data.price });
   revalidateCourse(id, data.slug);
   return { success: "Pricing saved.", values };
 }
@@ -267,7 +267,7 @@ export async function changeCourseStatusAction(formData: FormData) {
     .eq("id", id);
   if (error) redirect(`${workspaceBase(user)}/courses/${id}?step=publish&error=status`);
 
-  await recordAudit(supabase, user.id, `course.${action}`, { type: "course", id }, { from: course.status, to: next[action] });
+  await recordAudit(user.id, `course.${action}`, { type: "course", id }, { from: course.status, to: next[action] });
   revalidateCourse(id, course.slug);
   redirect(`${workspaceBase(user)}/courses/${id}?step=publish&done=${action}`);
 }
@@ -295,7 +295,7 @@ export async function deleteDraftCourseAction(formData: FormData) {
     if (isBunnyConfigured()) await Promise.allSettled(lessonVideoIds.map((v) => deleteVideo(v)));
   }
 
-  await recordAudit(supabase, user.id, "course.delete", { type: "course", id }, { title: course.title });
+  await recordAudit(user.id, "course.delete", { type: "course", id }, { title: course.title });
   revalidateWorkspaces("/courses");
   redirect(`${workspaceBase(user)}/courses?deleted=1`);
 }

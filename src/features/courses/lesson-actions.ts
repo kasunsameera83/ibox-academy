@@ -8,6 +8,7 @@ import { LESSON_TYPES, estimateReadingMinutes } from "@/lib/courses/lessons";
 import type { LessonType, QuizOption } from "@/lib/courses/types";
 import type { FormState } from "@/lib/forms";
 import { createClient } from "@/lib/supabase/server";
+import { lessonVideoId } from "@/lib/dal/courses";
 import { revalidateWorkspaces } from "@/lib/workspace";
 
 type Result = { ok: true } | { ok: false; error: string };
@@ -19,8 +20,9 @@ function revalidateLesson(courseId: string, lessonId: string) {
 }
 
 async function lessonType(supabase: Awaited<ReturnType<typeof createClient>>, lessonId: string, courseId: string) {
-  const { data } = await supabase.from("lessons").select("type, bunny_video_id").eq("id", lessonId).eq("course_id", courseId).maybeSingle();
-  return data as { type: LessonType; bunny_video_id: string | null } | null;
+  const { data } = await supabase.from("lessons").select("type").eq("id", lessonId).eq("course_id", courseId).maybeSingle();
+  if (!data) return null;
+  return { type: (data as { type: LessonType }).type, bunny_video_id: await lessonVideoId(supabase, lessonId) };
 }
 
 // ---------------------------------------------------------------- details
@@ -67,7 +69,7 @@ export async function saveLessonDetailsAction(_prev: FormState, formData: FormDa
     .eq("course_id", courseId);
   if (error) return { error: "Changes couldn't be saved. Please try again.", values };
 
-  await recordAudit(supabase, user.id, "lesson.update", { type: "lesson", id: lessonId }, { status: parsed.data.status });
+  await recordAudit(user.id, "lesson.update", { type: "lesson", id: lessonId }, { status: parsed.data.status });
   revalidateLesson(courseId, lessonId);
   return { success: "Lesson saved.", values };
 }

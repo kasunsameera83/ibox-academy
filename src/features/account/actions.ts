@@ -39,12 +39,12 @@ export async function changePasswordAction(_prev: FormState, formData: FormData)
     }
     return { error: "Your password couldn't be changed. Please try again." };
   }
-  await recordAudit(supabase, user.id, "account.password_changed", { type: "profile", id: user.id });
+  await recordAudit(user.id, "account.password_changed", { type: "profile", id: user.id });
   return { success: "Password changed. Other devices stay signed in until you sign them out below." };
 }
 
 export async function recordSecurityEventAction(action: "account.mfa_enabled" | "account.mfa_removed" | "account.signed_out_others") {
   const user = await requireUser();
   const supabase = await createClient();
-  await recordAudit(supabase, user.id, action, { type: "profile", id: user.id });
+  await recordAudit(user.id, action, { type: "profile", id: user.id });
 }

@@ -4,6 +4,7 @@ import { requirePermission } from "@/lib/dal/session";
 import { LESSON_TYPES } from "@/lib/courses/lessons";
 import type { LessonStatus, LessonType } from "@/lib/courses/types";
 import { createClient } from "@/lib/supabase/server";
+import { lessonVideoId } from "@/lib/dal/courses";
 import { revalidateWorkspaces } from "@/lib/workspace";
 
 export type ActionResult = { ok: true; id?: string } | { ok: false; error: string };
@@ -145,8 +146,8 @@ export async function reorderCurriculumAction(
 export async function deleteLessonAction(courseId: string, lessonId: string): Promise<ActionResult> {
   await requirePermission("courses.edit");
   const supabase = await createClient();
-  const [{ data: lesson }, { data: resources }] = await Promise.all([
-    supabase.from("lessons").select("bunny_video_id").eq("id", lessonId).maybeSingle(),
+  const [videoId, { data: resources }] = await Promise.all([
+    lessonVideoId(supabase, lessonId),
     supabase.from("lesson_resources").select("storage_path").eq("lesson_id", lessonId),
   ]);
   const { error } = await supabase.from("lessons").delete().eq("id", lessonId).eq("course_id", courseId);
@@ -154,7 +155,6 @@ export async function deleteLessonAction(courseId: string, lessonId: string): Pr
 
   const paths = ((resources ?? []) as { storage_path: string }[]).map((r) => r.storage_path);
   if (paths.length) await supabase.storage.from("lesson-resources").remove(paths);
-  const videoId = (lesson as { bunny_video_id: string | null } | null)?.bunny_video_id;
   if (videoId) {
     const { deleteVideo, isBunnyConfigured } = await import("@/lib/bunny");
     if (isBunnyConfigured()) await deleteVideo(videoId).catch(() => undefined);

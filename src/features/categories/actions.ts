@@ -70,7 +70,7 @@ export async function saveCategoryAction(_prev: FormState, formData: FormData): 
     return { error: "The category couldn't be saved. Please try again.", values };
   }
 
-  await recordAudit(supabase, user.id, id ? "category.update" : "category.create", { type: "category", id: result.data.id });
+  await recordAudit(user.id, id ? "category.update" : "category.create", { type: "category", id: result.data.id });
   revalidateCategories();
   if (!id) redirect("/app/owner/categories?saved=1");
   return { success: "Category saved." };
@@ -84,7 +84,7 @@ export async function deleteCategoryAction(formData: FormData) {
   if ((count ?? 0) > 0) redirect(`/app/owner/categories/${id}?error=in_use`);
   const { error } = await supabase.from("categories").delete().eq("id", id);
   if (error) redirect(`/app/owner/categories/${id}?error=delete_failed`);
-  await recordAudit(supabase, user.id, "category.delete", { type: "category", id });
+  await recordAudit(user.id, "category.delete", { type: "category", id });
   revalidateCategories();
   redirect("/app/owner/categories?deleted=1");
 }

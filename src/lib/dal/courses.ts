@@ -16,9 +16,9 @@ const COURSE_COLUMNS =
   "id, slug, title, subtitle, description, category_id, level, language, outcomes, audience, prerequisites, thumbnail_path, price_lkr, sale_price_lkr, access_type, access_days, status, published_at, seo_title, seo_description, preview_checked_at, intro_video_id, intro_video_status, intro_duration_seconds, certificate, created_at, updated_at";
 
 const LESSON_COLUMNS =
-  "id, course_id, section_id, type, status, title, description, has_body, settings, reading_minutes, position, is_preview, bunny_video_id, video_status, duration_seconds";
+  "id, course_id, section_id, type, status, title, description, has_body, settings, reading_minutes, position, is_preview, video_status, duration_seconds";
 
-type RawLesson = Omit<Lesson, "resource_count" | "question_count" | "body"> & {
+type RawLesson = Omit<Lesson, "resource_count" | "question_count" | "body" | "bunny_video_id"> & {
   body?: string | null;
   lesson_resources?: { count: number }[];
   quiz_questions?: { count: number }[];
@@ -35,6 +35,8 @@ function normaliseLesson(raw: RawLesson): Lesson {
     ...rest,
     // The text itself is loaded separately (lesson_body) by pages that may show it.
     body: rest.body ?? null,
+    // Filled in by attachVideoIds() only for lessons the viewer may open.
+    bunny_video_id: null,
     settings: (rest.settings ?? {}) as Lesson["settings"],
     resource_count: lesson_resources?.[0]?.count ?? 0,
     question_count: quiz_questions?.[0]?.count ?? 0,
@@ -54,6 +56,36 @@ function normalise(raw: RawCourse): CourseWithCurriculum {
     sale_price_lkr: raw.sale_price_lkr === null ? null : Number(raw.sale_price_lkr),
     sections,
   };
+}
+
+
+type ServerClient = Awaited<ReturnType<typeof createClient>>;
+
+/**
+ * Bunny video IDs are hidden from direct reads. lesson_video_ids() returns
+ * them only for lessons the caller may open (team, enrolled or a free preview).
+ */
+async function videoIdsFor(supabase: ServerClient, lessonIds: string[]): Promise<Map<string, string>> {
+  if (lessonIds.length === 0) return new Map();
+  const { data } = await supabase.rpc("lesson_video_ids", { p_lesson_ids: lessonIds });
+  return new Map(((data ?? []) as { lesson_id: string; video_id: string }[]).map((r) => [r.lesson_id, r.video_id]));
+}
+
+async function attachVideoIds(supabase: ServerClient, course: CourseWithCurriculum): Promise<CourseWithCurriculum> {
+  const videoLessons = course.sections.flatMap((s) => s.lessons).filter((l) => l.type === "video");
+  const ids = await videoIdsFor(supabase, videoLessons.map((l) => l.id));
+  return {
+    ...course,
+    sections: course.sections.map((s) => ({
+      ...s,
+      lessons: s.lessons.map((l) => (ids.has(l.id) ? { ...l, bunny_video_id: ids.get(l.id)! } : l)),
+    })),
+  };
+}
+
+/** One lesson's Bunny video ID, or null when there is none or the caller may not open it. */
+export async function lessonVideoId(supabase: ServerClient, lessonId: string): Promise<string | null> {
+  return (await videoIdsFor(supabase, [lessonId])).get(lessonId) ?? null;
 }
 
 /** Public: lesson rows only (RLS hides drafts and unpublished courses). */
@@ -124,7 +156,7 @@ export async function listCoursesForTeam(filters: { status?: string; q?: string 
 export async function getCourseForEditor(id: string): Promise<CourseWithCurriculum | null> {
   const supabase = await createClient();
   const { data } = await supabase.from("courses").select(TEAM_CURRICULUM_SELECT).eq("id", id).maybeSingle();
-  return data ? normalise(data as unknown as RawCourse) : null;
+  return data ? attachVideoIds(supabase, normalise(data as unknown as RawCourse)) : null;
 }
 
 export type LessonEditorData = {
@@ -148,11 +180,15 @@ export async function getLessonForEditor(courseId: string, lessonId: string): Pr
   const resourceList = (resources ?? []) as LessonResource[];
   const questionList = (questions ?? []) as QuizQuestion[];
   // Text bodies are hidden from direct reads; the content team gets them through lesson_body.
-  const { data: body } = await supabase.rpc("lesson_body", { p_lesson_id: lessonId });
+  const [{ data: body }, videoId] = await Promise.all([
+    supabase.rpc("lesson_body", { p_lesson_id: lessonId }),
+    lessonVideoId(supabase, lessonId),
+  ]);
   return {
     lesson: {
       ...normaliseLesson(lesson as unknown as RawLesson),
       body: (body as string | null) ?? null,
+      bunny_video_id: videoId,
       resource_count: resourceList.length,
       question_count: questionList.length,
     },
@@ -241,7 +277,7 @@ export const getCourseBySlug = cache(async (slug: string): Promise<CourseWithCur
   const supabase = await createClient();
   const { data } = await supabase.from("courses").select(CURRICULUM_SELECT).eq("slug", slug).maybeSingle();
   if (!data) return null;
-  const course = normalise(data as unknown as RawCourse);
+  const course = await attachVideoIds(supabase, normalise(data as unknown as RawCourse));
   // Learner-facing pages only ever show published lessons, even to the team.
   const sections = course.sections
     .map((s) => ({ ...s, lessons: s.lessons.filter((l) => l.status === "published") }))

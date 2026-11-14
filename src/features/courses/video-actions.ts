@@ -5,6 +5,7 @@ import { createVideo, deleteVideo, getVideoState, isBunnyConfigured, tusUploadCr
 import { recordAudit } from "@/lib/audit";
 import { requirePermission } from "@/lib/dal/session";
 import { createClient } from "@/lib/supabase/server";
+import { lessonVideoId } from "@/lib/dal/courses";
 import { revalidateWorkspaces } from "@/lib/workspace";
 
 type LessonRow = { id: string; course_id: string; title: string; type: string; bunny_video_id: string | null };
@@ -13,10 +14,12 @@ async function loadLesson(lessonId: string) {
   const supabase = await createClient();
   const { data } = await supabase
     .from("lessons")
-    .select("id, course_id, title, type, bunny_video_id")
+    .select("id, course_id, title, type")
     .eq("id", lessonId)
     .maybeSingle();
-  return { supabase, lesson: data as LessonRow | null };
+  if (!data) return { supabase, lesson: null };
+  const bunny_video_id = await lessonVideoId(supabase, lessonId);
+  return { supabase, lesson: { ...(data as Omit<LessonRow, "bunny_video_id">), bunny_video_id } };
 }
 
 export type UploadTicket =
@@ -43,7 +46,7 @@ export async function prepareVideoUploadAction(lessonId: string): Promise<Upload
       return { ok: false, error: "The lesson couldn't be updated." };
     }
     if (previous) await deleteVideo(previous).catch(() => undefined);
-    await recordAudit(supabase, user.id, "lesson.video_upload_started", { type: "lesson", id: lessonId });
+    await recordAudit(user.id, "lesson.video_upload_started", { type: "lesson", id: lessonId });
     return { ok: true, ...tusUploadCredentials(videoId) };
   } catch {
     return { ok: false, error: "Couldn't start the upload. Check the Bunny settings and try again." };
@@ -124,7 +127,7 @@ export async function prepareIntroUploadAction(courseId: string): Promise<Upload
       return { ok: false, error: "The course couldn't be updated." };
     }
     if (previous) await deleteVideo(previous).catch(() => undefined);
-    await recordAudit(supabase, user.id, "course.intro_upload_started", { type: "course", id: courseId });
+    await recordAudit(user.id, "course.intro_upload_started", { type: "course", id: courseId });
     return { ok: true, ...tusUploadCredentials(videoId) };
   } catch {
     return { ok: false, error: "Couldn't start the upload. Check the video hosting settings and try again." };

@@ -114,7 +114,11 @@ export async function reviewBankTransferAction(formData: FormData) {
     p_approve: decision === "approve",
     p_note: note || null,
   });
-  if (error) redirect(`${workspaceBase(user)}/payments?error=review`);
+  if (error) {
+    // IBX01: the reviewer placed this order themselves.
+    const reason = error.code === "IBX01" ? "own" : "review";
+    redirect(`${workspaceBase(user)}/payments?error=${reason}`);
+  }
   revalidateWorkspaces("/payments");
   revalidateWorkspaces("/orders");
   redirect(`${workspaceBase(user)}/payments?done=${decision}`);
@@ -140,7 +144,7 @@ export async function saveBankDetailsAction(_prev: FormState, formData: FormData
     .from("site_settings")
     .upsert({ key: "bank_transfer", value: parsed.data, is_public: true, updated_by: user.id });
   if (error) return { error: "The bank details couldn't be saved.", values };
-  await recordAudit(supabase, user.id, "settings.bank_details_updated", { type: "site_settings", id: "bank_transfer" });
+  await recordAudit(user.id, "settings.bank_details_updated", { type: "site_settings", id: "bank_transfer" });
   revalidatePath("/app/owner/settings/payments");
   return { success: "Bank details saved.", values };
 }

@@ -84,8 +84,8 @@ export function tusUploadCredentials(videoId: string, ttlSeconds = 60 * 60 * 6) 
   return { endpoint: `${API_BASE}/tusupload`, libraryId, videoId, expires, signature };
 }
 
-/** Signed player URL. Default lifetime is short; the player keeps working once loaded. */
-export function signedEmbedUrl(videoId: string, ttlSeconds = 60 * 60 * 2): string {
+/** Signed player URL. Short-lived (15 min) so a copied link stops working soon; the player keeps working once loaded. */
+export function signedEmbedUrl(videoId: string, ttlSeconds = 60 * 15): string {
   const { libraryId, tokenKey } = config();
   const expires = Math.floor(Date.now() / 1000) + ttlSeconds;
   const token = createHash("sha256").update(`${tokenKey}${videoId}${expires}`).digest("hex");

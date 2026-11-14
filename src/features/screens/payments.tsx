@@ -22,6 +22,7 @@ const MESSAGES: Record<string, { tone: "success" | "danger"; text: string }> = {
   reject: { tone: "success", text: "Slip rejected. The learner has been asked to upload a new one." },
   reason: { tone: "danger", text: "Give a reason when rejecting a slip, so the learner knows what to fix." },
   review: { tone: "danger", text: "That transfer couldn't be updated. It may already have been reviewed." },
+  own: { tone: "danger", text: "You can't review your own payment. Ask another team member, or grant access from Students." },
 };
 
 type PaymentEvent = { id: number; provider_ref: string | null; status_code: number | null; outcome: string; signature_valid: boolean; created_at: string; order: { reference: string } | null };

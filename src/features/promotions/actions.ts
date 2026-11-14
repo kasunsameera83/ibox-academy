@@ -80,7 +80,7 @@ export async function saveCouponAction(input: CouponInput): Promise<Result> {
     if (linkError) return { ok: false, error: "The code was saved, but its courses couldn't be. Please save again." };
   }
 
-  await recordAudit(supabase, user.id, v.id ? "coupon.update" : "coupon.create", { type: "coupon", id }, { code: v.code });
+  await recordAudit(user.id, v.id ? "coupon.update" : "coupon.create", { type: "coupon", id }, { code: v.code });
   revalidateWorkspaces("/promotions", "layout");
   return { ok: true, id, message: v.id ? "Promotion saved." : `${v.code} is ready to share.` };
 }
@@ -91,7 +91,7 @@ export async function setCouponActiveAction(id: string, active: boolean): Promis
   const supabase = await createClient();
   const { error } = await supabase.from("coupons").update({ is_active: active }).eq("id", id);
   if (error) return { ok: false, error: "The promotion couldn't be updated. Please try again." };
-  await recordAudit(supabase, user.id, active ? "coupon.resume" : "coupon.pause", { type: "coupon", id });
+  await recordAudit(user.id, active ? "coupon.resume" : "coupon.pause", { type: "coupon", id });
   revalidateWorkspaces("/promotions", "layout");
   return { ok: true, message: active ? "Code is live again." : "Code paused. Learners can't use it until you resume it." };
 }
@@ -104,7 +104,7 @@ export async function deleteCouponAction(id: string): Promise<Result> {
   if ((count ?? 0) > 0) return { ok: false, error: "This code has been used, so it's kept for your records. Pause it instead." };
   const { error } = await supabase.from("coupons").delete().eq("id", id);
   if (error) return { ok: false, error: "The promotion couldn't be deleted. Please try again." };
-  await recordAudit(supabase, user.id, "coupon.delete", { type: "coupon", id });
+  await recordAudit(user.id, "coupon.delete", { type: "coupon", id });
   revalidateWorkspaces("/promotions", "layout");
   return { ok: true, message: "Promotion deleted." };
 }
