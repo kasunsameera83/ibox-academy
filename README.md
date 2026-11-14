@@ -23,8 +23,10 @@ Components never use raw colours or the brand name directly — they read from t
    npm install
    ```
 3. **Create a Supabase project** at supabase.com (region: South Asia (Mumbai) is closest to Sri Lanka; otherwise Singapore).
-4. **Create the database** — in Supabase open **SQL Editor**, paste the whole of
-   `supabase/migrations/20261114000000_foundation.sql` and click **Run**.
+4. **Create the database** — in Supabase open **SQL Editor** and run each file in
+   `supabase/migrations/` **in order** (paste the whole file, click **Run**):
+   1. `20261114000000_foundation.sql`
+   2. `20261114010000_courses.sql`
 5. **Environment variables** — copy `.env.example` to `.env.local` and fill in
    `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
    (Supabase → Project Settings → API Keys).
@@ -50,6 +52,12 @@ Components never use raw colours or the brand name directly — they read from t
     where id = (select id from auth.users where email = 'you@example.com');
     ```
     Sign out and in again; you'll land in `/app/owner`.
+
+## Video hosting (Bunny Stream)
+
+Add the four `BUNNY_STREAM_*` values to `.env.local` (see `.env.example`) and restart `npm run dev`.
+In the Bunny library's **Security** settings: direct play off, block direct URL access on, embed view
+token authentication on, CDN token authentication on, and add your site's domain to **Allowed domains**.
 
 ## Scripts
 

@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button";
 import { homeContent } from "@/config/home-content";
+import { CourseCard } from "@/features/courses/components/course-card";
+import { listPublishedCourses } from "@/lib/dal/courses";
 
 /** CSS custom properties for the entrance animation. */
 function motion(delay: number, tilt = 0): CSSProperties {
@@ -86,8 +88,9 @@ function HeroPhone() {
   );
 }
 
-export default function HomePage() {
+export default async function HomePage() {
   const { hero, topics, steps, features, closingCta } = homeContent;
+  const newest = await listPublishedCourses({ sort: "newest" }, 4);
 
   return (
     <>
@@ -162,6 +165,23 @@ export default function HomePage() {
           </ul>
         </div>
       </section>
+
+      {/* Newest courses — only shown once something is published */}
+      {newest.length > 0 && (
+        <section aria-labelledby="new-courses-title">
+          <div className="mx-auto max-w-[1280px] px-4 pt-20 sm:px-6 lg:px-8 lg:pt-28">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <h2 id="new-courses-title" className="text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">Fresh courses</h2>
+              <Link href="/courses" className="text-sm font-bold text-brand hover:underline">See all courses</Link>
+            </div>
+            <ul className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              {newest.map((course) => (
+                <li key={course.id}><CourseCard course={course} /></li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
 
       {/* How it works — a real sequence, so it's numbered */}
       <section id="how-it-works" aria-labelledby="steps-title" className="scroll-mt-24">
