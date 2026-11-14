@@ -106,6 +106,8 @@ export type Course = {
   intro_video_id: string | null;
   intro_video_status: VideoStatus;
   intro_duration_seconds: number;
+  /** Raw certificate design; read it with parseDesign() from ./certificate. */
+  certificate: unknown;
   created_at: string;
   updated_at: string;
 };

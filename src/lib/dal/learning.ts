@@ -263,7 +263,7 @@ export async function listMyCertificates(userId: string): Promise<MyCertificate[
   );
 }
 
-export type VerifiedCertificate = { code: string; student_name: string; course_title: string; course_slug: string; issued_at: string };
+export type VerifiedCertificate = { code: string; student_name: string; course_title: string; course_slug: string; issued_at: string; design: unknown };
 
 export async function verifyCertificate(code: string): Promise<VerifiedCertificate | null> {
   if (!/^[A-Za-z0-9-]{6,20}$/.test(code)) return null;

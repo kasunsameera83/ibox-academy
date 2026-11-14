@@ -3,12 +3,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  AlertTriangle, Bell, BellRing, CheckCheck, CreditCard, FileCheck2, Gift, UserPlus, X, type LucideIcon,
+  AlertTriangle, Bell, BellRing, CheckCheck, ClipboardCheck, CreditCard, FileCheck2, Gift, UserPlus, X, type LucideIcon,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
-type Kind = "signup" | "payment_received" | "free_enrolment" | "slip_uploaded" | "payment_review" | "payment_failed" | "chargeback";
+type Kind =
+  | "signup" | "payment_received" | "free_enrolment" | "slip_uploaded" | "payment_review" | "payment_failed" | "chargeback"
+  | "assignment_submitted" | "assignment_reviewed";
 
 type Notification = {
   id: string;
@@ -28,6 +30,8 @@ const KIND_STYLE: Record<Kind, { icon: LucideIcon; className: string }> = {
   payment_review: { icon: AlertTriangle, className: "bg-warning-soft text-warning-ink" },
   payment_failed: { icon: AlertTriangle, className: "bg-danger-soft text-danger-ink" },
   chargeback: { icon: AlertTriangle, className: "bg-danger-soft text-danger-ink" },
+  assignment_submitted: { icon: ClipboardCheck, className: "bg-lilac text-ink" },
+  assignment_reviewed: { icon: ClipboardCheck, className: "bg-success-soft text-success-ink" },
 };
 
 const rtf = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
@@ -164,7 +168,7 @@ export function NotificationBell({ userId }: { userId: string }) {
             </button>
           </div>
           {items.length === 0 ? (
-            <p className="px-4 py-8 text-center text-sm text-ink-muted">You're all caught up. New sign-ups and payments appear here instantly.</p>
+            <p className="px-4 py-8 text-center text-sm text-ink-muted">You're all caught up. New alerts appear here instantly.</p>
           ) : (
             <ul className="max-h-[60vh] divide-y divide-line overflow-y-auto">
               {items.map((n) => (

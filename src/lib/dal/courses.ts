@@ -13,7 +13,7 @@ import type {
 } from "@/lib/courses/types";
 
 const COURSE_COLUMNS =
-  "id, slug, title, subtitle, description, category_id, level, language, outcomes, audience, prerequisites, thumbnail_path, price_lkr, sale_price_lkr, access_type, access_days, status, published_at, seo_title, seo_description, preview_checked_at, intro_video_id, intro_video_status, intro_duration_seconds, created_at, updated_at";
+  "id, slug, title, subtitle, description, category_id, level, language, outcomes, audience, prerequisites, thumbnail_path, price_lkr, sale_price_lkr, access_type, access_days, status, published_at, seo_title, seo_description, preview_checked_at, intro_video_id, intro_video_status, intro_duration_seconds, certificate, created_at, updated_at";
 
 const LESSON_COLUMNS =
   "id, course_id, section_id, type, status, title, description, has_body, settings, reading_minutes, position, is_preview, bunny_video_id, video_status, duration_seconds";

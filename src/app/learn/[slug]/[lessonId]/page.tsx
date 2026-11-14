@@ -279,7 +279,13 @@ export default async function LessonPlayerPage({ params }: Props) {
                 {!team && lesson.type === "assignment" && (
                   <p className={cn("flex items-center gap-1.5 text-sm font-semibold", isDone ? "text-success-ink" : "text-ink-muted")}>
                     {isDone ? <CheckCircle2 className="size-4" aria-hidden="true" /> : <Lock className="size-4" aria-hidden="true" />}
-                    {isDone ? "Assignment submitted" : "Submit your work to complete this lesson"}
+                    {isDone
+                      ? "Assignment approved"
+                      : content.submission?.status === "submitted"
+                        ? "Submitted. Waiting for review"
+                        : content.submission?.status === "changes_requested"
+                          ? "Changes requested. Resubmit to complete"
+                          : "Submit your work. It completes when approved"}
                   </p>
                 )}
               </div>

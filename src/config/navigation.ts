@@ -4,7 +4,7 @@ import type { PermissionKey } from "@/lib/auth/permissions";
 export type NavIcon =
   | "home" | "book" | "compass" | "heart" | "award" | "receipt" | "help" | "settings"
   | "globe" | "folder" | "users" | "shield" | "cart" | "wallet" | "tag" | "life-buoy"
-  | "chart" | "lock" | "inbox" | "list" | "bell" | "user";
+  | "chart" | "lock" | "inbox" | "list" | "bell" | "user" | "clipboard";
 
 export type NavItem = {
   label: string;
@@ -40,6 +40,7 @@ export const ownerNav: NavItem[] = [
   { label: "Overview", href: "/app/owner", icon: "home" },
   { label: "Website", href: "/app/owner/website", icon: "globe", phase: 2, description: "Edit the landing page, menus, footer, SEO, media and brand settings." },
   { label: "Courses", href: "/app/owner/courses", icon: "book", phase: 2, description: "Create, edit, preview and publish courses." },
+  { label: "Assignments", href: "/app/owner/assignments", icon: "clipboard" },
   { label: "Categories", href: "/app/owner/categories", icon: "folder", phase: 2, description: "Category hierarchy, images, ordering and SEO." },
   { label: "Students", href: "/app/owner/students", icon: "users", phase: 4, description: "Search learners, view enrolments and manage account status." },
   { label: "Staff & roles", href: "/app/owner/staff", icon: "shield", phase: 4, description: "Invite staff and assign permissions." },

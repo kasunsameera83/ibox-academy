@@ -22,7 +22,7 @@ const MAX_MB = 25;
 const dateFormat = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit", timeZone: "Asia/Colombo" });
 
 const STATUS_TEXT: Record<MySubmission["status"], string> = {
-  submitted: "Submitted. Waiting for review.",
+  submitted: "Submitted. This lesson completes when your work is approved.",
   approved: "Reviewed and approved.",
   changes_requested: "Changes requested. Update your work and submit again.",
 };

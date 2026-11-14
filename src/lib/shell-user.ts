@@ -5,8 +5,8 @@ import { ROLE_LABELS } from "@/lib/auth/permissions";
 export function toShellUser(user: SessionUser) {
   return {
     id: user.id,
-    // Live alerts for the Owner and staff (learner notifications come later).
-    notifications: user.role !== "student",
+    // Live alerts: sign-ups and payments for the team, assignment reviews for learners.
+    notifications: true,
     name: user.fullName || user.email.split("@")[0] || "Account",
     email: user.email,
     roleLabel: ROLE_LABELS[user.role],

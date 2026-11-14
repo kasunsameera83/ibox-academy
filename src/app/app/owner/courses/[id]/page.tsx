@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Check } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { CertificateDesigner } from "@/features/certificates/certificate-designer";
 import { CurriculumEditor } from "@/features/courses/components/curriculum-editor";
 import { IntroVideoCard } from "@/features/courses/components/intro-video-card";
 import { OutcomesForm } from "@/features/courses/components/outcomes-form";
@@ -14,6 +15,7 @@ import { SeoForm } from "@/features/courses/components/seo-form";
 import { ThumbnailUploader } from "@/features/courses/components/thumbnail-uploader";
 import { VideoHostingNotice } from "@/features/courses/components/video-hosting-notice";
 import { isBunnyConfigured } from "@/lib/bunny";
+import { parseDesign } from "@/lib/courses/certificate";
 import { publishChecklist } from "@/lib/courses/checklist";
 import { formatDuration, mediaUrl } from "@/lib/courses/format";
 import { curriculumStats } from "@/lib/courses/lessons";
@@ -28,6 +30,7 @@ const STEPS = [
   { key: "outcomes", label: "Outcomes", description: "What learners will be able to do, who it's for and what they need." },
   { key: "curriculum", label: "Curriculum", description: "Sections, lessons, videos and free previews." },
   { key: "pricing", label: "Pricing & access", description: "Price in LKR and how long learners keep access." },
+  { key: "certificate", label: "Certificate", description: "Design the certificate learners get when they finish every lesson and every assignment is approved." },
   { key: "seo", label: "SEO", description: "How the course appears in Google and when shared." },
   { key: "publish", label: "Publish", description: "Final checks, then go live." },
 ] as const;
@@ -117,6 +120,7 @@ export default async function CourseEditorPage({ params, searchParams }: { param
             />
           )}
           {step === "pricing" && <PricingForm course={course} />}
+          {step === "certificate" && <CertificateDesigner courseId={course.id} courseTitle={course.title} initial={parseDesign(course.certificate)} />}
           {step === "seo" && <SeoForm course={course} />}
           {step === "publish" && (
             <PublishPanel

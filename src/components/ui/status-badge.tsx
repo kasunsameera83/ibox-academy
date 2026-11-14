@@ -29,6 +29,8 @@ const STATUS: Record<string, { label: string; tone: Tone }> = {
   not_started: { label: "Not started", tone: "neutral" },
   in_progress: { label: "In progress", tone: "brand" },
   completed: { label: "Completed", tone: "success" },
+  submitted: { label: "To review", tone: "brand" },
+  approved: { label: "Approved", tone: "success" },
   expired: { label: "Expired", tone: "neutral" },
   revoked: { label: "Revoked", tone: "danger" },
   invited: { label: "Invited", tone: "brand" },
