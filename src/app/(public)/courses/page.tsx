@@ -46,12 +46,15 @@ export default async function ExplorePage({ searchParams }: { searchParams: Sear
 
   return (
     <div className="mx-auto max-w-[1280px] px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
-      <h1 className="text-4xl font-extrabold tracking-[-0.03em] text-ink sm:text-5xl">
+      <div className="rounded-card bg-block-lilac px-6 py-10 sm:px-10 sm:py-14">
+      <h1 className="type-display-lg text-ink">
         {activeCategory ? activeCategory.name : "Explore courses"}
       </h1>
-      {activeCategory?.description && <p className="mt-3 max-w-2xl text-lg text-ink-muted">{activeCategory.description}</p>}
+      <p className="mt-3 max-w-2xl text-lg text-ink">
+        {activeCategory?.description || "Short, practical courses in LKR. Watch the free previews before you buy."}
+      </p>
 
-      <form action="/courses" role="search" className="mt-8 flex max-w-2xl items-center gap-2 rounded-full border-2 border-ink bg-surface p-1.5 pl-5">
+      <form action="/courses" role="search" className="mt-8 flex max-w-2xl items-center gap-2 rounded-full bg-surface p-1.5 pl-5 focus-within:ring-2 focus-within:ring-ink">
         {category && <input type="hidden" name="category" value={category} />}
         {level && <input type="hidden" name="level" value={level} />}
         <label htmlFor="catalogue-search" className="sr-only">Search courses</label>
@@ -65,8 +68,9 @@ export default async function ExplorePage({ searchParams }: { searchParams: Sear
           placeholder="Search by skill or course"
           className="h-11 min-w-0 flex-1 bg-transparent text-base text-ink outline-none placeholder:text-ink-muted"
         />
-        <button type="submit" className="h-11 rounded-full bg-brand px-6 text-sm font-bold text-on-brand hover:bg-brand-hover">Search</button>
+        <button type="submit" className="h-11 rounded-full bg-ink px-6 text-sm font-semibold text-white hover:bg-ink/85">Search</button>
       </form>
+      </div>
 
       <nav aria-label="Categories" className="mt-6">
         <ul className="flex flex-wrap gap-2">
@@ -74,7 +78,7 @@ export default async function ExplorePage({ searchParams }: { searchParams: Sear
             <Link
               href={buildHref(current, { category: undefined })}
               aria-current={!category ? "page" : undefined}
-              className={cn("inline-flex h-10 items-center rounded-full border px-4 text-sm font-semibold", !category ? "border-ink bg-ink text-white" : "border-line bg-surface text-ink hover:border-ink")}
+              className={cn("inline-flex h-10 items-center rounded-full border px-4 text-sm font-semibold", !category ? "border-ink bg-ink text-white" : "border-ink/15 bg-surface text-ink hover:border-ink")}
             >
               All
             </Link>
@@ -84,7 +88,7 @@ export default async function ExplorePage({ searchParams }: { searchParams: Sear
               <Link
                 href={buildHref(current, { category: c.slug })}
                 aria-current={category === c.slug ? "page" : undefined}
-                className={cn("inline-flex h-10 items-center rounded-full border px-4 text-sm font-semibold", category === c.slug ? "border-ink bg-ink text-white" : "border-line bg-surface text-ink hover:border-ink")}
+                className={cn("inline-flex h-10 items-center rounded-full border px-4 text-sm font-semibold", category === c.slug ? "border-ink bg-ink text-white" : "border-ink/15 bg-surface text-ink hover:border-ink")}
               >
                 {c.name}
               </Link>
@@ -98,26 +102,26 @@ export default async function ExplorePage({ searchParams }: { searchParams: Sear
           {courses.length} course{courses.length === 1 ? "" : "s"}
           {q && <> for “<span className="font-semibold text-ink">{q}</span>”</>}
         </p>
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
-          <span className="font-semibold text-ink">Level</span>
+        <div className="flex flex-wrap items-center gap-x-1.5 gap-y-2 text-sm">
+          <span className="type-label mr-1 text-ink-muted">Level</span>
           {[undefined, ...Object.keys(LEVEL_LABELS)].map((l) => (
             <Link
               key={l ?? "any"}
               href={buildHref(current, { level: l })}
               aria-current={level === l ? "true" : undefined}
-              className={cn("font-medium", level === l ? "text-brand underline underline-offset-4" : "text-ink-muted hover:text-ink")}
+              className={cn("rounded-full px-3 py-1 font-medium", level === l ? "bg-ink text-white" : "text-ink-muted hover:bg-canvas hover:text-ink")}
             >
               {l ? LEVEL_LABELS[l as CourseLevel] : "Any"}
             </Link>
           ))}
-          <span className="hidden h-4 w-px bg-line sm:block" aria-hidden="true" />
-          <span className="font-semibold text-ink">Sort</span>
+          <span className="mx-2 hidden h-4 w-px bg-line sm:block" aria-hidden="true" />
+          <span className="type-label mr-1 text-ink-muted">Sort</span>
           {SORTS.map((s) => (
             <Link
               key={s.value}
               href={buildHref(current, { sort: s.value === "newest" ? undefined : s.value })}
               aria-current={sort === s.value ? "true" : undefined}
-              className={cn("font-medium", sort === s.value ? "text-brand underline underline-offset-4" : "text-ink-muted hover:text-ink")}
+              className={cn("rounded-full px-3 py-1 font-medium", sort === s.value ? "bg-ink text-white" : "text-ink-muted hover:bg-canvas hover:text-ink")}
             >
               {s.label}
             </Link>

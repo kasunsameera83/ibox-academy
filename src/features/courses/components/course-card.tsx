@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { blockFor } from "@/lib/courses/block-color";
 import { accessLabel, effectivePrice, formatDuration, formatPrice, mediaUrl } from "@/lib/courses/format";
 import { LEVEL_LABELS } from "@/lib/courses/types";
 import type { CatalogueCourse } from "@/lib/dal/courses";
+import { cn } from "@/lib/utils";
 
 export function CourseCard({ course }: { course: CatalogueCourse }) {
   const thumb = mediaUrl(course.thumbnail_path);
@@ -9,39 +11,38 @@ export function CourseCard({ course }: { course: CatalogueCourse }) {
   const onSale = course.sale_price_lkr !== null && course.price_lkr !== null;
 
   return (
-    <article className="group relative flex h-full flex-col overflow-hidden rounded-[20px] border border-line bg-surface transition-shadow hover:shadow-float">
-      <div className="aspect-video overflow-hidden bg-brand-soft">
+    <article className="group relative flex h-full flex-col rounded-card bg-canvas p-2.5 transition-colors hover:bg-[color-mix(in_oklab,var(--color-canvas),var(--color-ink)_5%)]">
+      <div className="aspect-video overflow-hidden rounded-tile">
         {thumb ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={thumb} alt="" loading="lazy" className="size-full object-cover transition-transform duration-300 group-hover:scale-[1.03]" />
         ) : (
-          <div className="flex size-full items-end bg-brand p-4">
-            <span className="line-clamp-2 text-lg font-extrabold leading-tight text-on-brand">{course.title}</span>
+          <div className={cn("flex size-full items-end p-4", blockFor(course.id))}>
+            <span className="line-clamp-3 text-xl font-semibold leading-[1.1] tracking-[-0.03em] text-ink">{course.title}</span>
           </div>
         )}
       </div>
-      <div className="flex flex-1 flex-col gap-2 p-4">
-        <p className="text-xs font-semibold text-brand">
-          {course.category?.name ?? "Course"} <span className="text-ink-muted">/ {LEVEL_LABELS[course.level]}</span>
+      <div className="flex flex-1 flex-col gap-2 px-2 pb-2 pt-4">
+        <p className="type-label text-ink-muted">
+          {course.category?.name ?? "Course"} · {LEVEL_LABELS[course.level]}
         </p>
-        <h3 className="text-base font-bold leading-snug text-ink">
-          <Link href={`/courses/${course.slug}`} className="after:absolute after:inset-0 focus-visible:outline-none">
+        <h3 className="text-[17px] font-bold leading-snug tracking-[-0.01em] text-ink">
+          <Link href={`/courses/${course.slug}`} className="after:absolute after:inset-0 after:rounded-card focus-visible:outline-none">
             {course.title}
           </Link>
         </h3>
         {course.subtitle && <p className="line-clamp-2 text-sm text-ink-muted">{course.subtitle}</p>}
         <p className="text-xs text-ink-muted">
           {course.lesson_count} lesson{course.lesson_count === 1 ? "" : "s"}
-          {course.total_seconds ? `, ${formatDuration(course.total_seconds)}` : ""}
+          {course.total_seconds ? `, ${formatDuration(course.total_seconds)}` : ""} · {accessLabel(course.access_type, course.access_days)}
         </p>
-        <div className="mt-auto flex items-end justify-between gap-2 pt-2">
-          <div>
-            <span className="text-lg font-extrabold text-ink">{formatPrice(price)}</span>
-            {onSale && <span className="ml-2 text-sm text-ink-muted line-through">{formatPrice(course.price_lkr)}</span>}
-          </div>
-          <span className="text-xs text-ink-muted">{accessLabel(course.access_type, course.access_days)}</span>
+        <div className="mt-auto flex items-baseline gap-2 pt-2">
+          <span className="text-xl font-bold tracking-[-0.02em] text-ink">{formatPrice(price)}</span>
+          {onSale && <span className="text-sm text-ink-muted line-through">{formatPrice(course.price_lkr)}</span>}
         </div>
       </div>
+      {/* Keyboard focus ring for the whole card */}
+      <span className="pointer-events-none absolute inset-0 rounded-card ring-ink ring-offset-2 group-has-[:focus-visible]:ring-2" aria-hidden="true" />
     </article>
   );
 }

@@ -48,7 +48,7 @@ export async function CoursesScreen({ searchParams, user, base }: { searchParams
               aria-current={status === f.value ? "page" : undefined}
               className={cn(
                 "rounded-full px-3 py-1.5 text-sm font-semibold",
-                status === f.value ? "bg-brand-soft text-brand" : "text-ink-muted hover:bg-canvas hover:text-ink",
+                status === f.value ? "bg-ink text-white" : "text-ink-muted hover:bg-canvas hover:text-ink",
               )}
             >
               {f.label}

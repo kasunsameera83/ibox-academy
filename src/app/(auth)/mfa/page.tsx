@@ -12,7 +12,7 @@ export default async function MfaPage() {
 
   return (
     <>
-      <h1 className="text-2xl font-bold tracking-tight">Two-step verification</h1>
+      <h1 className="type-display-md">Two-step verification</h1>
       <p className="mt-1 text-sm text-ink-muted">
         Your account can manage payments and learner data, so it's protected with a code from an authenticator app.
       </p>

@@ -58,7 +58,7 @@ export function BarChart({
       <figcaption className="flex items-start justify-between gap-3">
         <span>
           <span id={`${id}-title`} className="block text-sm font-semibold text-ink">{title}</span>
-          <span className="block text-2xl font-extrabold tabular-nums text-ink">{format(total)}</span>
+          <span className="block text-2xl font-semibold tracking-[-0.03em] tabular-nums text-ink">{format(total)}</span>
         </span>
         <button
           type="button"

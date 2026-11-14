@@ -13,7 +13,7 @@ export default async function WelcomePage() {
 
   return (
     <>
-      <h1 className="text-2xl font-bold tracking-tight">Welcome to the {brand.name} team</h1>
+      <h1 className="type-display-md">Welcome to the {brand.name} team</h1>
       {user ? (
         <>
           <p className="mt-1 text-sm text-ink-muted">

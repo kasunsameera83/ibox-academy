@@ -24,20 +24,20 @@ export function UnlockedCelebration({ title, thumbnail }: { title: string; thumb
       ))}
 
       {/* Back card: a second "ticket" peeking out for depth */}
-      <div className="absolute inset-x-12 bottom-2 top-10 rotate-[-5deg] rounded-[22px] bg-lilac" />
+      <div className="absolute inset-x-12 bottom-2 top-10 rotate-[-5deg] rounded-card bg-block-lilac" />
 
-      <div className="rise-in relative overflow-hidden rounded-[22px] border-2 border-ink bg-surface shadow-[6px_6px_0_0_var(--color-ink)]" style={{ ["--tilt" as string]: "2deg" }}>
-        <div className="relative aspect-video w-full bg-brand">
+      <div className="rise-in relative overflow-hidden rounded-card bg-surface p-2 ring-1 ring-line" style={{ ["--tilt" as string]: "2deg" }}>
+        <div className="relative aspect-video w-full overflow-hidden rounded-tile bg-brand">
           {thumbnail ? (
             // eslint-disable-next-line @next/next/no-img-element -- media host is configurable; matches other course thumbnails
             <img src={thumbnail} alt="" className="size-full object-cover" />
           ) : (
             <div className="flex h-full items-end p-5">
-              <p className="line-clamp-3 text-2xl font-extrabold leading-tight text-on-brand">{title}</p>
+              <p className="line-clamp-3 text-2xl font-semibold leading-[1.1] tracking-[-0.03em] text-on-brand">{title}</p>
             </div>
           )}
         </div>
-        <div className="flex items-center justify-between gap-3 px-4 py-3">
+        <div className="flex items-center justify-between gap-3 px-2 pb-1 pt-3">
           <span className="text-sm font-bold text-ink">Unlocked</span>
           <span className="inline-flex items-center gap-1 rounded-full bg-success-soft px-2.5 py-1 text-xs font-bold text-success-ink">
             <span className="size-1.5 rounded-full bg-success" /> Ready to watch
@@ -47,11 +47,11 @@ export function UnlockedCelebration({ title, thumbnail }: { title: string; thumb
 
       {/* Sticker */}
       <div
-        className="rise-in absolute -right-1 -top-1 flex size-20 flex-col items-center justify-center rounded-full border-2 border-ink bg-accent text-center text-on-accent shadow-[3px_3px_0_0_var(--color-ink)]"
+        className="rise-in absolute -right-1 -top-1 flex size-20 flex-col items-center justify-center rounded-[6px] bg-block-lemon text-center text-ink"
         style={{ ["--tilt" as string]: "-12deg", ["--delay" as string]: "350ms" }}
       >
         <Sparkles className="size-5" />
-        <span className="text-[11px] font-extrabold leading-tight">You're in!</span>
+        <span className="text-xs font-bold leading-tight">You're in!</span>
       </div>
     </div>
   );

@@ -59,7 +59,7 @@ export default async function CertificatePage({ params }: Props) {
           signatureUrl={mediaUrl(design.signaturePath)}
           className={cn(
             "print:shadow-none",
-            design.template === "bold" ? "rounded-[24px] shadow-[8px_8px_0_0_var(--color-ink)]" : "shadow-float",
+            design.template === "bold" ? "rounded-[24px]" : "ring-1 ring-line",
           )}
         />
 

@@ -3,25 +3,28 @@ import type { ComponentProps } from "react";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type Variant = "primary" | "secondary" | "tertiary" | "destructive";
+type Variant = "primary" | "secondary" | "tertiary" | "destructive" | "ink";
 type Size = "sm" | "md" | "lg" | "icon";
 
+// Every text button is a pill. Icon-only buttons (size "icon") are circles.
 const base =
-  "inline-flex items-center justify-center gap-2 rounded-control font-semibold transition-colors " +
+  "inline-flex items-center justify-center gap-2 rounded-full font-semibold tracking-[-0.01em] transition-[background-color,color,transform] active:scale-[0.98] " +
   "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand " +
   "disabled:cursor-not-allowed disabled:opacity-60 select-none whitespace-nowrap";
 
 const variants: Record<Variant, string> = {
   primary: "bg-brand text-on-brand hover:bg-brand-hover",
-  secondary: "border border-line bg-surface text-ink hover:bg-canvas",
-  tertiary: "text-brand hover:bg-brand-soft",
+  secondary: "border border-ink/15 bg-surface text-ink hover:border-ink/30 hover:bg-canvas",
+  tertiary: "text-ink hover:bg-ink/5",
   destructive: "bg-danger text-white hover:bg-danger-ink",
+  /** Black pill: for use on colour blocks, where purple would clash. */
+  ink: "bg-ink text-white hover:bg-ink/85",
 };
 
 const sizes: Record<Size, string> = {
-  sm: "h-9 px-3 text-sm",
-  md: "h-11 px-4 text-sm",
-  lg: "h-12 px-6 text-base",
+  sm: "h-9 px-4 text-sm",
+  md: "h-11 px-5 text-sm",
+  lg: "h-12 px-7 text-base",
   icon: "size-10",
 };
 

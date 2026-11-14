@@ -26,7 +26,7 @@ export async function AssignmentReviewScreen({ params, user, base }: { params: P
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-sm text-ink-muted">{s.course?.title}</p>
-          <h1 className="text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">{s.lesson?.title ?? "Assignment"}</h1>
+          <h1 className="text-2xl font-semibold tracking-[-0.03em] text-ink sm:text-3xl">{s.lesson?.title ?? "Assignment"}</h1>
           <p className="mt-1 text-sm text-ink-muted">
             <span className="font-semibold text-ink">{learner}</span>
             {s.student?.full_name && s.student.email ? ` · ${s.student.email}` : ""} · Submitted {dateFormat.format(new Date(s.submitted_at))}

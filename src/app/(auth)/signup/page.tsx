@@ -13,7 +13,7 @@ export default async function SignupPage({ searchParams }: { searchParams: Searc
 
   return (
     <>
-      <h1 className="text-2xl font-bold tracking-tight">Create your account</h1>
+      <h1 className="type-display-md">Create your account</h1>
       <p className="mt-1 text-sm text-ink-muted">Start learning with {brand.name} — it only takes a minute.</p>
       <div className="mt-6">
         <GoogleButton next={next} />

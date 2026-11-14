@@ -37,11 +37,11 @@ export async function AssignmentsScreen({ searchParams, user, base }: { searchPa
               key={f.value || "all"}
               href={`${base}/assignments?status=${f.value}`}
               aria-current={status === f.value ? "page" : undefined}
-              className={cn("inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold", status === f.value ? "bg-brand-soft text-brand" : "text-ink-muted hover:bg-canvas hover:text-ink")}
+              className={cn("inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold", status === f.value ? "bg-ink text-white" : "text-ink-muted hover:bg-canvas hover:text-ink")}
             >
               {f.label}
               {f.value === "submitted" && toReview > 0 && (
-                <span className="rounded-full bg-brand px-1.5 text-[11px] leading-5 text-on-brand">{toReview}</span>
+                <span className="rounded-full bg-accent px-1.5 text-[11px] font-bold leading-5 text-on-accent">{toReview}</span>
               )}
             </Link>
           ))}

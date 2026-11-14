@@ -78,14 +78,14 @@ export async function CourseEditorScreen({ params, searchParams, user, base }: {
                   href={`?step=${s.key}`}
                   aria-current={s.key === step ? "step" : undefined}
                   className={cn(
-                    "flex items-center gap-3 rounded-control px-3 py-2.5 text-sm font-medium",
-                    s.key === step ? "bg-brand-soft text-brand" : "text-ink-muted hover:bg-surface hover:text-ink",
+                    "flex items-center gap-3 rounded-full px-3 py-2.5 text-sm font-medium",
+                    s.key === step ? "bg-ink text-white" : "text-ink-muted hover:bg-surface hover:text-ink",
                   )}
                 >
                   <span
                     className={cn(
                       "flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-bold",
-                      doneSteps.has(s.key) ? "bg-success text-white" : s.key === step ? "bg-brand text-on-brand" : "bg-line text-ink-muted",
+                      doneSteps.has(s.key) ? "bg-success text-white" : s.key === step ? "bg-white text-ink" : "bg-line text-ink-muted",
                     )}
                   >
                     {doneSteps.has(s.key) ? <Check className="size-3.5" aria-label="complete" /> : i + 1}

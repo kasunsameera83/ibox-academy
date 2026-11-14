@@ -89,7 +89,7 @@ export function QuizRunner({ lessonId, slug, questions, passPercent, lastAttempt
             {result.passed ? <Trophy className="size-7" aria-hidden="true" /> : <RotateCcw className="size-7" aria-hidden="true" />}
           </span>
           <div className="flex-1">
-            <p className="text-2xl font-extrabold text-ink">
+            <p className="text-2xl font-bold text-ink">
               {result.percent}% · {result.correct} of {result.total} correct
             </p>
             <p className="text-sm text-ink">

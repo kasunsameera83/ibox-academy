@@ -225,7 +225,7 @@ export function CheckoutForm({
         <dl className="flex flex-col gap-1 rounded-card bg-canvas px-4 py-3 text-sm">
           <div className="flex justify-between text-ink-muted"><dt>Price</dt><dd>{formatPrice(applied.listPrice)}</dd></div>
           <div className="flex justify-between text-success-ink"><dt>Code {applied.code}</dt><dd>−{formatPrice(applied.discount)}</dd></div>
-          <div className="flex justify-between font-extrabold text-ink"><dt>You pay</dt><dd>{formatPrice(applied.total)}</dd></div>
+          <div className="flex justify-between font-bold text-ink"><dt>You pay</dt><dd>{formatPrice(applied.total)}</dd></div>
         </dl>
       )}
 

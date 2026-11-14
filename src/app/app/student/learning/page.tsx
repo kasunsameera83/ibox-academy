@@ -28,21 +28,21 @@ function ContinueHero({ card }: { card: MyCourseCard }) {
   if (!card.course) return null;
   const thumb = mediaUrl(card.course.thumbnail_path);
   return (
-    <section aria-label="Continue learning" className="mb-8 grid overflow-hidden rounded-[22px] border-2 border-ink bg-surface shadow-[6px_6px_0_0_var(--color-ink)] md:grid-cols-[minmax(0,1fr)_1.2fr]">
-      <div className="relative aspect-video bg-brand md:aspect-auto">
+    <section aria-label="Continue learning" className="mb-8 grid gap-2 overflow-hidden rounded-card bg-block-lilac p-2 md:grid-cols-[minmax(0,1fr)_1.2fr]">
+      <div className="relative aspect-video overflow-hidden rounded-tile bg-brand md:aspect-auto">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         {thumb ? <img src={thumb} alt="" className="absolute inset-0 size-full object-cover" /> : (
-          <p className="absolute inset-0 flex items-end p-5 text-2xl font-extrabold leading-tight text-on-brand">{card.course.title}</p>
+          <p className="absolute inset-0 flex items-end p-5 text-2xl font-semibold leading-[1.1] tracking-[-0.03em] text-on-brand">{card.course.title}</p>
         )}
       </div>
       <div className="flex flex-col justify-center gap-3 p-6">
-        <p className="text-sm font-bold text-brand">Pick up where you left off</p>
-        <h2 className="text-2xl font-extrabold leading-tight tracking-tight text-ink">{card.course.title}</h2>
+        <p className="type-label text-ink">Pick up where you left off</p>
+        <h2 className="type-display-md text-ink">{card.course.title}</h2>
         <ProgressBar percent={card.progress.percent} />
-        <p className="text-sm text-ink-muted">
+        <p className="text-sm text-ink">
           {card.progress.done} of {card.progress.total} lessons done · {card.progress.percent}%
         </p>
-        <ButtonLink href={`/learn/${card.course.slug}`} size="lg" className="mt-1 w-fit rounded-full">
+        <ButtonLink href={`/learn/${card.course.slug}`} size="lg" variant="ink" className="mt-1 w-fit">
           <PlayCircle className="size-5" aria-hidden="true" /> Continue learning
         </ButtonLink>
       </div>
@@ -84,7 +84,7 @@ export default async function MyLearningPage({ searchParams }: { searchParams: S
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       {thumb && <img src={thumb} alt="" className="size-full object-cover" />}
                       {finished && (
-                        <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full border-2 border-ink bg-accent px-2.5 py-1 text-xs font-extrabold text-on-accent">
+                        <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-ink px-2.5 py-1 text-xs font-semibold text-white">
                           <Award className="size-3.5" aria-hidden="true" /> Completed
                         </span>
                       )}

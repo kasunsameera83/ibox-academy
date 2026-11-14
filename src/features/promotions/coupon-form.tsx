@@ -82,7 +82,7 @@ export function CouponForm({ coupon, courses }: { coupon?: Coupon; courses: { id
       <fieldset className="flex flex-col gap-2">
         <legend className="mb-1 text-sm font-semibold text-ink">Discount</legend>
         <div className="flex flex-wrap items-center gap-2">
-          <div className="inline-flex rounded-control border border-line p-0.5" role="radiogroup" aria-label="Discount type">
+          <div className="inline-flex rounded-full border border-line p-0.5" role="radiogroup" aria-label="Discount type">
             {(["percent", "fixed"] as const).map((t) => (
               <button
                 key={t}
@@ -90,7 +90,7 @@ export function CouponForm({ coupon, courses }: { coupon?: Coupon; courses: { id
                 role="radio"
                 aria-checked={v.discountType === t}
                 onClick={() => set("discountType", t)}
-                className={cn("rounded-[calc(var(--radius-control)-2px)] px-3 py-1.5 text-sm font-semibold", v.discountType === t ? "bg-brand text-on-brand" : "text-ink-muted hover:text-ink")}
+                className={cn("rounded-full px-3.5 py-1.5 text-sm font-semibold", v.discountType === t ? "bg-ink text-white" : "text-ink-muted hover:text-ink")}
               >
                 {t === "percent" ? "Percentage" : "Fixed amount"}
               </button>

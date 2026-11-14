@@ -39,7 +39,7 @@ export async function OrdersScreen({ searchParams, user, base }: { searchParams:
               key={f.value}
               href={f.value ? `${base}/orders?status=${f.value}` : `${base}/orders`}
               aria-current={status === f.value ? "page" : undefined}
-              className={cn("rounded-full px-3 py-1.5 text-sm font-semibold", status === f.value ? "bg-brand-soft text-brand" : "text-ink-muted hover:bg-canvas hover:text-ink")}
+              className={cn("rounded-full px-3 py-1.5 text-sm font-semibold", status === f.value ? "bg-ink text-white" : "text-ink-muted hover:bg-canvas hover:text-ink")}
             >
               {f.label}
             </Link>

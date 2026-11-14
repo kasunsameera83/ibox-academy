@@ -47,7 +47,7 @@ export async function ReportsScreen({ searchParams, user, base }: { searchParams
             key={p.value}
             href={`${base}/reports?range=${p.value}`}
             aria-current={range.preset === p.value ? "page" : undefined}
-            className={cn("rounded-full px-3 py-1.5 text-sm font-semibold", range.preset === p.value ? "bg-brand text-on-brand" : "text-ink-muted hover:text-ink")}
+            className={cn("rounded-full px-3 py-1.5 text-sm font-semibold", range.preset === p.value ? "bg-ink text-white" : "text-ink-muted hover:text-ink")}
           >
             {p.label}
           </Link>
@@ -123,7 +123,7 @@ export async function ReportsScreen({ searchParams, user, base }: { searchParams
         {tiles.map((x) => (
           <li key={x.label} className="rounded-card border border-line bg-surface p-5">
             <p className="text-sm text-ink-muted">{x.label}</p>
-            <p className="mt-1 text-2xl font-extrabold tabular-nums text-ink">{x.value}</p>
+            <p className="mt-1 text-2xl font-semibold tracking-[-0.03em] tabular-nums text-ink">{x.value}</p>
             <p className="mt-0.5 text-xs text-ink-muted">{x.hint}</p>
           </li>
         ))}

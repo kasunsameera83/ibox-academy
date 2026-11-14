@@ -32,8 +32,8 @@ function NavList({ items, rootHref, onNavigate }: { items: NavItem[]; rootHref: 
               onClick={onNavigate}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "flex items-center gap-3 rounded-control px-3 py-2.5 text-sm font-medium transition-colors",
-                active ? "bg-brand-soft text-brand" : "text-ink-muted hover:bg-canvas hover:text-ink",
+                "flex items-center gap-3 rounded-full px-3.5 py-2.5 text-sm font-medium transition-colors",
+                active ? "bg-ink text-white" : "text-ink-muted hover:bg-canvas hover:text-ink",
               )}
             >
               <Icon className="size-[18px] shrink-0" aria-hidden="true" />
@@ -49,7 +49,7 @@ function NavList({ items, rootHref, onNavigate }: { items: NavItem[]; rootHref: 
 function UserBlock({ user }: { user: ShellUser }) {
   return (
     <div className="flex items-center gap-3 border-t border-line p-4">
-      <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-soft text-sm font-bold text-brand" aria-hidden="true">
+      <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-block-lilac text-sm font-bold text-ink" aria-hidden="true">
         {user.name.slice(0, 1).toUpperCase()}
       </span>
       <div className="min-w-0 flex-1">
@@ -105,7 +105,7 @@ export function DashboardShell({
         <div className="flex h-[68px] items-center px-5">
           <Logo href={rootHref} />
         </div>
-        <p className="px-6 pb-2 pt-1 text-xs font-semibold uppercase tracking-wider text-ink-muted">{workspaceLabel}</p>
+        <p className="type-label px-6 pb-2 pt-1 text-ink-muted">{workspaceLabel}</p>
         <nav aria-label={`${workspaceLabel} navigation`} className="flex-1 overflow-y-auto px-3 pb-4">
           <NavList items={nav} rootHref={rootHref} />
         </nav>
@@ -176,9 +176,11 @@ export function DashboardShell({
                   <Link
                     href={item.href}
                     aria-current={active ? "page" : undefined}
-                    className={cn("flex h-16 flex-col items-center justify-center gap-1 text-xs font-medium", active ? "text-brand" : "text-ink-muted")}
+                    className={cn("flex h-16 flex-col items-center justify-center gap-1 text-xs font-medium", active ? "text-ink" : "text-ink-muted")}
                   >
-                    <Icon className="size-5" aria-hidden="true" />
+                    <span className={cn("flex h-7 w-12 items-center justify-center rounded-full", active && "bg-ink text-white")}>
+                      <Icon className="size-5" aria-hidden="true" />
+                    </span>
                     {item.label}
                   </Link>
                 </li>

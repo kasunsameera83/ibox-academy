@@ -162,15 +162,15 @@ export default async function LessonPlayerPage({ params }: Props) {
           )}
 
           {progress.percent === 100 && progress.certificate && (
-            <div className="rise-in mb-6 flex flex-col gap-4 overflow-hidden rounded-[22px] border-2 border-ink bg-accent p-5 shadow-[5px_5px_0_0_var(--color-ink)] sm:flex-row sm:items-center">
-              <span className="flex size-14 shrink-0 items-center justify-center rounded-full border-2 border-ink bg-surface">
-                <Award className="size-7 text-ink" aria-hidden="true" />
+            <div className="rise-in mb-6 flex flex-col gap-4 overflow-hidden rounded-card bg-block-lemon p-6 sm:flex-row sm:items-center">
+              <span className="flex size-14 shrink-0 items-center justify-center rounded-full bg-ink">
+                <Award className="size-7 text-white" aria-hidden="true" />
               </span>
               <div className="flex-1">
-                <p className="text-lg font-extrabold text-on-accent">You finished the course.</p>
-                <p className="text-sm text-on-accent">Your certificate is ready to view, print and share.</p>
+                <p className="text-xl font-semibold tracking-[-0.02em] text-ink">You finished the course.</p>
+                <p className="text-sm text-ink">Your certificate is ready to view, print and share.</p>
               </div>
-              <ButtonLink href={`/certificates/${progress.certificate}`} className="rounded-full">View certificate</ButtonLink>
+              <ButtonLink href={`/certificates/${progress.certificate}`} variant="ink">View certificate</ButtonLink>
             </div>
           )}
 
@@ -194,7 +194,7 @@ export default async function LessonPlayerPage({ params }: Props) {
                 <p className="text-xs font-semibold text-ink-muted">
                   {section ? `${section.title} · ` : ""}Lesson {index + 1} of {data.lessons.length}
                 </p>
-                <h1 className="mt-0.5 text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">{lesson.title}</h1>
+                <h1 className="mt-0.5 text-2xl font-semibold tracking-[-0.03em] text-ink sm:text-3xl">{lesson.title}</h1>
               </div>
             </div>
             {lesson.description && <p className="mt-4 max-w-[68ch] whitespace-pre-line text-ink-muted">{lesson.description}</p>}

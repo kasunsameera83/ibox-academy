@@ -36,7 +36,7 @@ export function SimpleText({ text }: { text: string }) {
       const content = line.replace(/^#{1,3}\s+/, "");
       blocks.push(
         level === 1 ? (
-          <h2 key={`h${blocks.length}`} className="mt-4 text-2xl font-extrabold tracking-tight text-ink">{content}</h2>
+          <h2 key={`h${blocks.length}`} className="mt-4 text-2xl font-semibold tracking-[-0.03em] text-ink">{content}</h2>
         ) : (
           <h3 key={`h${blocks.length}`} className="mt-3 text-xl font-bold text-ink">{content}</h3>
         ),

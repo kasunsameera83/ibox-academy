@@ -62,7 +62,7 @@ export default async function StaffWorkspacePage() {
                   <ArrowRight className="size-4 text-ink-muted transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
                 </span>
                 <span>
-                  <span className="block text-3xl font-extrabold tabular-nums text-ink">{t.value.toLocaleString("en-LK")}</span>
+                  <span className="block text-3xl font-semibold tracking-[-0.03em] tabular-nums text-ink">{t.value.toLocaleString("en-LK")}</span>
                   <span className="block font-semibold text-ink">{t.label}</span>
                   <span className="block text-xs text-ink-muted">{t.hint}</span>
                 </span>

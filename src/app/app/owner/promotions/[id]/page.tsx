@@ -42,7 +42,7 @@ export default async function PromotionPage({ params, searchParams }: { params: 
 
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-3">
-          <h1 className="rounded-control border-2 border-dashed border-brand bg-brand-soft px-4 py-1.5 font-mono text-2xl font-extrabold tracking-wider text-brand">{c.code}</h1>
+          <h1 className="rounded-control border-2 border-dashed border-brand bg-brand-soft px-4 py-1.5 font-mono text-2xl font-bold tracking-wider text-brand">{c.code}</h1>
           <StatusBadge status={state} />
           <span className="text-sm text-ink-muted">{c.discount_type === "percent" ? `${c.discount_value}% off` : `${formatPrice(c.discount_value)} off`}</span>
         </div>
@@ -93,7 +93,7 @@ export default async function PromotionPage({ params, searchParams }: { params: 
         {tiles.map((t) => (
           <li key={t.label} className="rounded-card border border-line bg-surface p-5">
             <p className="text-sm text-ink-muted">{t.label}</p>
-            <p className="mt-1 text-2xl font-extrabold tabular-nums text-ink">{t.value}</p>
+            <p className="mt-1 text-2xl font-semibold tracking-[-0.03em] tabular-nums text-ink">{t.value}</p>
           </li>
         ))}
       </ul>

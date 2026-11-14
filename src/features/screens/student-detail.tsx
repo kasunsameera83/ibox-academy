@@ -39,11 +39,11 @@ export async function StudentDetailScreen({ params, user, base }: { params: Prom
 
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-center gap-4">
-          <span className="flex size-14 items-center justify-center rounded-full bg-lilac text-xl font-extrabold text-ink" aria-hidden="true">
+          <span className="flex size-14 items-center justify-center rounded-full bg-lilac text-xl font-bold text-ink" aria-hidden="true">
             {name.slice(0, 1).toUpperCase()}
           </span>
           <div>
-            <h1 className="flex flex-wrap items-center gap-2 text-2xl font-extrabold tracking-tight text-ink">
+            <h1 className="flex flex-wrap items-center gap-2 text-2xl font-semibold tracking-[-0.03em] text-ink">
               {name} <StatusBadge status={profile.status} />
               {profile.role !== "student" && <StatusBadge status="brand" label={ROLE_LABELS[profile.role as AppRole] ?? profile.role} tone="brand" />}
             </h1>

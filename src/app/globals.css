@@ -12,6 +12,14 @@
   --color-on-accent: var(--brand-accent-ink);
   --color-lilac: var(--brand-lilac);
 
+  --color-block-lilac: var(--brand-block-lilac);
+  --color-block-lemon: var(--brand-block-lemon);
+  --color-block-mint: var(--brand-block-mint);
+  --color-block-pink: var(--brand-block-pink);
+  --color-block-sky: var(--brand-block-sky);
+  --color-block-cream: var(--brand-block-cream);
+  --color-block-night: var(--brand-block-night);
+
   --color-ink: var(--brand-ink);
   --color-ink-muted: var(--brand-ink-muted);
   --color-canvas: var(--brand-canvas);
@@ -33,9 +41,11 @@
 
   --radius-card: var(--brand-radius-card);
   --radius-control: var(--brand-radius-control);
+  --radius-tile: var(--brand-radius-tile);
   --shadow-float: var(--brand-shadow-float);
 
   --font-sans: var(--font-brand), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-brand-mono), ui-monospace, "SF Mono", Menlo, monospace;
 }
 
 @layer base {
@@ -43,15 +53,46 @@
     -webkit-text-size-adjust: 100%;
   }
   body {
-    background-color: var(--brand-canvas);
+    background-color: var(--brand-surface);
     color: var(--brand-ink);
+    font-feature-settings: "kern";
   }
   :focus-visible {
-    outline: 2px solid var(--brand-primary);
+    outline: 2px solid var(--brand-ink);
     outline-offset: 2px;
   }
   dialog::backdrop {
     background: rgb(33 31 50 / 0.45);
+  }
+}
+
+/* Type scale: display sizes are tight and tracked in; body stays relaxed. */
+@layer components {
+  .type-display-xl {
+    font-size: clamp(2.75rem, 1.6rem + 5vw, 5.75rem);
+    line-height: 0.98;
+    letter-spacing: -0.045em;
+    font-weight: 600;
+  }
+  .type-display-lg {
+    font-size: clamp(2.25rem, 1.5rem + 3vw, 4rem);
+    line-height: 1.02;
+    letter-spacing: -0.035em;
+    font-weight: 600;
+  }
+  .type-display-md {
+    font-size: clamp(1.75rem, 1.3rem + 1.6vw, 2.5rem);
+    line-height: 1.08;
+    letter-spacing: -0.03em;
+    font-weight: 600;
+  }
+  /* Small mono labels for categories and meta (use sparingly). */
+  .type-label {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    line-height: 1.2;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
   }
 }
 
@@ -85,4 +126,21 @@
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }
+}
+
+/* Topic ribbon on the home page: a slow loop that pauses on hover and
+   stays still for people who prefer reduced motion. */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.marquee-track {
+  animation: marquee 40s linear infinite;
+}
+.marquee:hover .marquee-track,
+.marquee:focus-within .marquee-track {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track { animation: none; }
 }

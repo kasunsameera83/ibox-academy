@@ -52,7 +52,7 @@ export default async function PreviewLessonPage({ params }: Props) {
         <div className="min-w-0">
           {lesson.type === "text" ? (
             <article className="rounded-[20px] border border-line bg-surface p-6 sm:p-10">
-              <h1 className="text-3xl font-extrabold tracking-tight text-ink">{lesson.title}</h1>
+              <h1 className="text-3xl font-semibold tracking-[-0.03em] text-ink">{lesson.title}</h1>
               {lesson.description && <p className="mt-3 text-lg text-ink-muted">{lesson.description}</p>}
               <div className="mt-6">
                 {body ? <SimpleText text={body} /> : <p className="text-ink-muted">This lesson has no content yet.</p>}
@@ -77,7 +77,7 @@ export default async function PreviewLessonPage({ params }: Props) {
               </div>
             )}
           </div>
-          <h1 className="mt-5 text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">{lesson.title}</h1>
+          <h1 className="mt-5 text-2xl font-semibold tracking-[-0.03em] text-ink sm:text-3xl">{lesson.title}</h1>
           {lesson.description && <p className="mt-3 max-w-[68ch] whitespace-pre-line text-ink-muted">{lesson.description}</p>}
           </>
           )}
@@ -89,7 +89,7 @@ export default async function PreviewLessonPage({ params }: Props) {
         <aside className="flex flex-col gap-4">
           <div className="rounded-[20px] border border-line bg-surface p-5">
             <p className="text-sm font-semibold text-ink">Like what you see?</p>
-            <p className="mt-1 text-2xl font-extrabold text-ink">{formatPrice(price)}</p>
+            <p className="mt-1 text-2xl font-bold text-ink">{formatPrice(price)}</p>
             <ButtonLink href={`/checkout/${course.slug}`} fullWidth className="mt-4 rounded-full">
               {price === 0 ? "Enrol for free" : "Get the full course"}
             </ButtonLink>

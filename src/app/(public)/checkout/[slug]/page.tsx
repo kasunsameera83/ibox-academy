@@ -36,7 +36,7 @@ export default async function CheckoutPage({ params, searchParams }: { params: P
       <Link href={`/courses/${course.slug}`} className="inline-flex items-center gap-1.5 text-sm font-semibold text-ink-muted hover:text-ink">
         <ArrowLeft className="size-4" aria-hidden="true" /> Back to the course
       </Link>
-      <h1 className="mt-4 text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">Checkout</h1>
+      <h1 className="mt-4 text-3xl font-semibold tracking-[-0.03em] text-ink sm:text-4xl">Checkout</h1>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_380px]">
         <section aria-labelledby="pay-heading" className="rounded-[24px] border border-line bg-surface p-6 sm:p-8">
@@ -67,7 +67,7 @@ export default async function CheckoutPage({ params, searchParams }: { params: P
                 <dd className="line-through">{formatPrice(course.price_lkr)}</dd>
               </div>
             )}
-            <div className="flex justify-between text-lg font-extrabold text-ink">
+            <div className="flex justify-between text-lg font-bold text-ink">
               <dt>Price</dt>
               <dd>{formatPrice(price)}</dd>
             </div>

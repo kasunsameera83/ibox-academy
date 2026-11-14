@@ -19,7 +19,7 @@ function Panel({ icon, tone, title, children }: { icon: ReactNode; tone: string;
   return (
     <div className="flex flex-col items-start gap-4">
       <span className={`flex size-14 items-center justify-center rounded-full ${tone}`}>{icon}</span>
-      <h1 className="text-3xl font-extrabold tracking-tight text-ink">{title}</h1>
+      <h1 className="text-3xl font-semibold tracking-[-0.03em] text-ink">{title}</h1>
       {children}
     </div>
   );
@@ -48,7 +48,7 @@ export default async function OrderPage({ params, searchParams }: { params: Prom
           <span className="inline-flex items-center gap-1.5 rounded-full bg-success-soft px-3 py-1 text-sm font-bold text-success-ink">
             <CheckCircle2 className="size-4" aria-hidden="true" /> Payment confirmed
           </span>
-          <h1 className="text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">Your course is ready.</h1>
+          <h1 className="text-3xl font-semibold tracking-[-0.03em] text-ink sm:text-4xl">Your course is ready.</h1>
           <p className="text-ink-muted">“{order.course_title}” is now in My Learning. Jump in whenever you like.</p>
           <ButtonLink href={order.course_slug ? `/learn/${order.course_slug}` : "/app/student/learning"} size="lg" className="rounded-full">Start learning</ButtonLink>
         </div>
@@ -76,7 +76,7 @@ export default async function OrderPage({ params, searchParams }: { params: Prom
   } else if (order.status === "pending" && order.method === "bank_transfer" && !expired) {
     body = (
       <div className="flex flex-col gap-6">
-        <h1 className="text-3xl font-extrabold tracking-tight text-ink">Pay by bank transfer</h1>
+        <h1 className="text-3xl font-semibold tracking-[-0.03em] text-ink">Pay by bank transfer</h1>
         {order.review_note && (
           <Alert tone="danger" title="We couldn't confirm your previous slip">{order.review_note} Please upload a new slip.</Alert>
         )}

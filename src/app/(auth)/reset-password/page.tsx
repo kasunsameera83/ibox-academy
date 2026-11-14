@@ -11,7 +11,7 @@ export default async function ResetPasswordPage() {
 
   return (
     <>
-      <h1 className="text-2xl font-bold tracking-tight">Choose a new password</h1>
+      <h1 className="type-display-md">Choose a new password</h1>
       <div className="mt-6">
         {user ? (
           <ResetPasswordForm />

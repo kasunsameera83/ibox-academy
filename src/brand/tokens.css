@@ -4,7 +4,12 @@
  * ============================================================
  *  Components never use raw hex values; they use these tokens
  *  through Tailwind classes such as bg-brand, text-ink, border-line,
- *  rounded-card. Change a value here and the whole app updates.
+ *  rounded-card, bg-block-lilac. Change a value here and the whole
+ *  app updates.
+ *
+ *  Style: a monochrome editorial frame (white canvas, near-black ink,
+ *  hairline borders, pill buttons) broken up by large flat colour
+ *  blocks in the iBox palette. Depth comes from colour, not shadows.
  */
 :root {
   /* Brand */
@@ -13,17 +18,28 @@
   --brand-primary-soft: #eeecfd;
   --brand-on-primary: #ffffff;
 
-  /* Accents (landing page and highlights) */
+  /* Accents */
   --brand-accent: #ffd84d;
   --brand-accent-ink: #3d2f00;
   --brand-lilac: #e4dffd;
 
+  /* Colour blocks: big flat section and tile backgrounds.
+     Ink text (--brand-ink) is readable on every light block. */
+  --brand-block-lilac: #cdc3fb;
+  --brand-block-lemon: #fff0a3;
+  --brand-block-mint: #c9ead4;
+  --brand-block-pink: #f7d3df;
+  --brand-block-sky: #cfe2fb;
+  --brand-block-cream: #f5eedb;
+  /* The one dark block; use white text on it. */
+  --brand-block-night: #1c1934;
+
   /* Neutrals */
-  --brand-ink: #211f32;
-  --brand-ink-muted: #5e5b73;
-  --brand-canvas: #f7f6fc;
+  --brand-ink: #131218;
+  --brand-ink-muted: #5c5a68;
+  --brand-canvas: #f6f6f3;
   --brand-surface: #ffffff;
-  --brand-border: #e5e4ed;
+  --brand-border: #e4e3e0;
 
   /* Status (base = icons/fills, ink = readable text, soft = backgrounds) */
   --brand-success: #1c9b72;
@@ -40,7 +56,9 @@
   --brand-info-soft: #e8f0fc;
 
   /* Shape */
-  --brand-radius-card: 12px;
+  --brand-radius-card: 24px;
+  --brand-radius-tile: 14px;
   --brand-radius-control: 10px;
-  --brand-shadow-float: 0 8px 24px -8px rgb(33 31 50 / 0.14), 0 2px 6px -2px rgb(33 31 50 / 0.08);
+  /* Shadows are rare: menus, pop-ups and floating bars only. */
+  --brand-shadow-float: 0 6px 24px -6px rgb(19 18 24 / 0.16), 0 1px 3px rgb(19 18 24 / 0.06);
 }
