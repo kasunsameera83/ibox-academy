@@ -48,7 +48,7 @@ export const ownerNav: NavItem[] = [
   { label: "Payments", href: "/app/owner/payments", icon: "wallet", phase: 3, description: "PayHere reconciliation, bank transfer verification and refunds." },
   { label: "Promotions", href: "/app/owner/promotions", icon: "tag" },
   { label: "Support", href: "/app/owner/support", icon: "life-buoy", phase: 4, description: "Ticket queue, assignment and internal notes." },
-  { label: "Reports", href: "/app/owner/reports", icon: "chart", phase: 4, description: "Sales, enrolments, completion and exports." },
+  { label: "Reports", href: "/app/owner/reports", icon: "chart" },
   { label: "Security", href: "/app/owner/security", icon: "lock", phase: 4, description: "Login events, role changes, audit log and sessions." },
   { label: "Settings", href: "/app/owner/settings", icon: "settings", phase: 4, description: "Platform identity, locale, email templates and payment settings." },
   { label: "My account", href: "/app/owner/account", icon: "user" },
@@ -62,7 +62,7 @@ export const staffNav: NavItem[] = [
   { label: "Orders", href: "/app/staff/orders", icon: "cart", permission: "orders.read" },
   { label: "Payments", href: "/app/staff/payments", icon: "wallet", permission: "payments.read" },
   { label: "Support", href: "/app/staff/support", icon: "inbox", permission: "tickets.read", phase: 5, description: "Ticket queue and replies." },
-  { label: "Reports", href: "/app/staff/reports", icon: "chart", permission: "reports.read", phase: 5, description: "Reports assigned to you." },
+  { label: "Reports", href: "/app/staff/reports", icon: "chart", permission: "reports.read" },
   { label: "Settings", href: "/app/staff/settings", icon: "settings", description: "Profile, password, two-step verification and sessions." },
 ];
 
