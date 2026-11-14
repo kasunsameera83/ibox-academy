@@ -26,7 +26,10 @@ export type Lesson = {
   status: LessonStatus;
   title: string;
   description: string | null;
+  /** Only filled where the viewer may read it (see getLessonBody). */
   body: string | null;
+  /** Whether the lesson has text content or instructions. */
+  has_body: boolean;
   settings: LessonSettings;
   reading_minutes: number | null;
   position: number;

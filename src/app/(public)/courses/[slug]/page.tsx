@@ -44,7 +44,7 @@ export default async function CourseDetailPage({ params }: Props) {
 
   const user = await getCurrentUser();
   const enrolled = user ? await hasActiveEnrolment(user.id, course.id) : false;
-  const ctaHref = enrolled ? "/app/student/learning" : `/checkout/${course.slug}`;
+  const ctaHref = enrolled ? `/learn/${course.slug}` : `/checkout/${course.slug}`;
   const stats = curriculumStats(course.sections);
   const price = effectivePrice(course);
   const onSale = course.sale_price_lkr !== null && course.price_lkr !== null;
@@ -203,7 +203,7 @@ export default async function CourseDetailPage({ params }: Props) {
                 {onSale && <span className="text-ink-muted line-through">{formatPrice(course.price_lkr)}</span>}
               </div>
               <ButtonLink href={ctaHref} size="lg" fullWidth className="rounded-full">
-                {enrolled ? "Go to My Learning" : price === 0 ? "Enrol for free" : "Buy now"}
+                {enrolled ? "Go to course" : price === 0 ? "Enrol for free" : "Buy now"}
               </ButtonLink>
               {enrolled && <p className="text-center text-sm font-semibold text-success-ink">You're enrolled in this course.</p>}
               <ul className="flex flex-col gap-2 text-sm text-ink-muted">
@@ -225,7 +225,7 @@ export default async function CourseDetailPage({ params }: Props) {
           <p className="text-lg font-extrabold leading-tight text-ink">{formatPrice(price)}</p>
           {onSale && <p className="text-xs text-ink-muted line-through">{formatPrice(course.price_lkr)}</p>}
         </div>
-        <ButtonLink href={ctaHref} className="rounded-full">{enrolled ? "My Learning" : price === 0 ? "Enrol for free" : "Buy now"}</ButtonLink>
+        <ButtonLink href={ctaHref} className="rounded-full">{enrolled ? "Go to course" : price === 0 ? "Enrol for free" : "Buy now"}</ButtonLink>
       </div>
       <div className="h-20 lg:hidden" aria-hidden="true" />
     </>

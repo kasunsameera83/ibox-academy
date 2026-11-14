@@ -19,10 +19,10 @@ export type NavItem = {
 
 export const studentNav: NavItem[] = [
   { label: "Overview", href: "/app/student", icon: "home" },
-  { label: "My Learning", href: "/app/student/learning", icon: "book", phase: 3, description: "All your enrolled courses, progress and next lessons." },
+  { label: "My Learning", href: "/app/student/learning", icon: "book" },
   { label: "Explore", href: "/courses", icon: "compass" },
   { label: "Wishlist", href: "/app/student/wishlist", icon: "heart", phase: 3, description: "Courses you saved for later." },
-  { label: "Certificates", href: "/app/student/certificates", icon: "award", phase: 3, description: "Certificates you earn by completing every lesson of a course." },
+  { label: "Certificates", href: "/app/student/certificates", icon: "award" },
   { label: "Payments", href: "/app/student/payments", icon: "receipt", phase: 3, description: "Orders, receipts, payment status and refund requests." },
   { label: "Help", href: "/app/student/help", icon: "help", phase: 4, description: "Search help articles and contact support." },
   { label: "Settings", href: "/app/student/settings", icon: "settings", phase: 1, description: "Profile, password, sessions and preferences." },

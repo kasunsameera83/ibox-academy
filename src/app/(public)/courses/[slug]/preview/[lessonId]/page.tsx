@@ -9,7 +9,7 @@ import { effectivePrice, formatClock, formatPrice } from "@/lib/courses/format";
 import { LESSON_TYPES, lessonMissing } from "@/lib/courses/lessons";
 import { SimpleText } from "@/lib/courses/simple-text";
 import type { Lesson } from "@/lib/courses/types";
-import { getCourseBySlug } from "@/lib/dal/courses";
+import { getCourseBySlug, getLessonBody } from "@/lib/dal/courses";
 import { getCurrentUser, hasPermission } from "@/lib/dal/session";
 import { cn } from "@/lib/utils";
 
@@ -37,6 +37,7 @@ export default async function PreviewLessonPage({ params }: Props) {
   if (!allowed) notFound();
 
   const previews = lessons.filter(openable);
+  const body = lesson.type === "text" ? await getLessonBody(lesson.id) : null;
   const canPlay = lesson.type === "video" && lesson.video_status === "ready" && lesson.bunny_video_id && isBunnyConfigured();
   const embed = canPlay ? signedEmbedUrl(lesson.bunny_video_id!) : null;
   const price = effectivePrice(course);
@@ -54,7 +55,7 @@ export default async function PreviewLessonPage({ params }: Props) {
               <h1 className="text-3xl font-extrabold tracking-tight text-ink">{lesson.title}</h1>
               {lesson.description && <p className="mt-3 text-lg text-ink-muted">{lesson.description}</p>}
               <div className="mt-6">
-                {lesson.body ? <SimpleText text={lesson.body} /> : <p className="text-ink-muted">This lesson has no content yet.</p>}
+                {body ? <SimpleText text={body} /> : <p className="text-ink-muted">This lesson has no content yet.</p>}
               </div>
             </article>
           ) : (

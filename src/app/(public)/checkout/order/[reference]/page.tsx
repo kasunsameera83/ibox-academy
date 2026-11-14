@@ -50,7 +50,7 @@ export default async function OrderPage({ params, searchParams }: { params: Prom
           </span>
           <h1 className="text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">Your course is ready.</h1>
           <p className="text-ink-muted">“{order.course_title}” is now in My Learning. Jump in whenever you like.</p>
-          <ButtonLink href="/app/student/learning" size="lg" className="rounded-full">Start learning</ButtonLink>
+          <ButtonLink href={order.course_slug ? `/learn/${order.course_slug}` : "/app/student/learning"} size="lg" className="rounded-full">Start learning</ButtonLink>
         </div>
       </div>
     );

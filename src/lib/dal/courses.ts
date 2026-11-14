@@ -16,9 +16,10 @@ const COURSE_COLUMNS =
   "id, slug, title, subtitle, description, category_id, level, language, outcomes, audience, prerequisites, thumbnail_path, price_lkr, sale_price_lkr, access_type, access_days, status, published_at, seo_title, seo_description, preview_checked_at, intro_video_id, intro_video_status, intro_duration_seconds, created_at, updated_at";
 
 const LESSON_COLUMNS =
-  "id, course_id, section_id, type, status, title, description, body, settings, reading_minutes, position, is_preview, bunny_video_id, video_status, duration_seconds";
+  "id, course_id, section_id, type, status, title, description, has_body, settings, reading_minutes, position, is_preview, bunny_video_id, video_status, duration_seconds";
 
-type RawLesson = Omit<Lesson, "resource_count" | "question_count"> & {
+type RawLesson = Omit<Lesson, "resource_count" | "question_count" | "body"> & {
+  body?: string | null;
   lesson_resources?: { count: number }[];
   quiz_questions?: { count: number }[];
 };
@@ -32,6 +33,8 @@ function normaliseLesson(raw: RawLesson): Lesson {
   const { lesson_resources, quiz_questions, ...rest } = raw;
   return {
     ...rest,
+    // The text itself is loaded separately (lesson_body) by pages that may show it.
+    body: rest.body ?? null,
     settings: (rest.settings ?? {}) as Lesson["settings"],
     resource_count: lesson_resources?.[0]?.count ?? 0,
     question_count: quiz_questions?.[0]?.count ?? 0,
@@ -144,9 +147,12 @@ export async function getLessonForEditor(courseId: string, lessonId: string): Pr
   if (!lesson || !course) return null;
   const resourceList = (resources ?? []) as LessonResource[];
   const questionList = (questions ?? []) as QuizQuestion[];
+  // Text bodies are hidden from direct reads; the content team gets them through lesson_body.
+  const { data: body } = await supabase.rpc("lesson_body", { p_lesson_id: lessonId });
   return {
     lesson: {
       ...normaliseLesson(lesson as unknown as RawLesson),
+      body: (body as string | null) ?? null,
       resource_count: resourceList.length,
       question_count: questionList.length,
     },
@@ -242,3 +248,10 @@ export const getCourseBySlug = cache(async (slug: string): Promise<CourseWithCur
     .filter((s) => s.lessons.length > 0);
   return { ...course, sections };
 });
+
+/** Lesson text (text lessons and assignment instructions) for anyone allowed to open the lesson. */
+export async function getLessonBody(lessonId: string): Promise<string | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("lesson_body", { p_lesson_id: lessonId });
+  return error ? null : ((data as string | null) ?? null);
+}

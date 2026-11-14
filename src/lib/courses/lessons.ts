@@ -30,13 +30,13 @@ export function lessonMissing(lesson: Lesson): string | null {
       if (lesson.video_status !== "ready") return "Video processing";
       return null;
     case "text":
-      return lesson.body && lesson.body.trim().length > 0 ? null : "No content yet";
+      return lesson.has_body ? null : "No content yet";
     case "resource":
       return lesson.resource_count > 0 ? null : "No files attached";
     case "quiz":
       return lesson.question_count > 0 ? null : "No questions yet";
     case "assignment":
-      return lesson.body && lesson.body.trim().length > 0 ? null : "No instructions yet";
+      return lesson.has_body ? null : "No instructions yet";
   }
 }
 
@@ -67,7 +67,7 @@ export function lessonSummary(lesson: Lesson): string {
     case "quiz":
       return `${t} · ${lesson.question_count} question${lesson.question_count === 1 ? "" : "s"}`;
     case "assignment":
-      return lesson.body ? `${t} · Instructions added` : `${t} · No instructions`;
+      return lesson.has_body ? `${t} · Instructions added` : `${t} · No instructions`;
   }
 }
 

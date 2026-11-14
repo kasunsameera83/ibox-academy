@@ -75,3 +75,14 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Certificates print on one A4 landscape page with their colours. */
+@media print {
+  @page { size: A4 landscape; margin: 10mm; }
+  .certificate {
+    width: 260mm;
+    margin: 0 auto;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}
