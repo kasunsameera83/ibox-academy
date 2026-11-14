@@ -5,11 +5,21 @@ import { BadgeCheck, CheckCircle2, ChevronDown, Clock, Globe, Infinity as Infini
 import { brand } from "@/brand";
 import { Alert } from "@/components/ui/alert";
 import { ButtonLink } from "@/components/ui/button";
-import { accessLabel, curriculumStats, effectivePrice, formatClock, formatDuration, formatPrice, mediaUrl } from "@/lib/courses/format";
+import { CourseMedia } from "@/features/courses/components/course-media";
+import { LessonTypeIcon } from "@/features/courses/components/lesson-type-icon";
+import { isBunnyConfigured, signedEmbedUrl } from "@/lib/bunny";
+import { accessLabel, effectivePrice, formatClock, formatDuration, formatPrice, mediaUrl } from "@/lib/courses/format";
+import { LESSON_TYPES, curriculumStats, lessonMissing, lessonSeconds } from "@/lib/courses/lessons";
+import type { Lesson } from "@/lib/courses/types";
 import { LANGUAGE_LABELS, LEVEL_LABELS } from "@/lib/courses/types";
 import { getCourseBySlug } from "@/lib/dal/courses";
 
 type Props = { params: Promise<{ slug: string }> };
+
+/** A free preview a visitor can actually open. */
+function canPreview(lesson: Lesson) {
+  return lesson.is_preview && LESSON_TYPES[lesson.type].previewable && !lessonMissing(lesson);
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
@@ -34,7 +44,11 @@ export default async function CourseDetailPage({ params }: Props) {
   const price = effectivePrice(course);
   const onSale = course.sale_price_lkr !== null && course.price_lkr !== null;
   const thumb = mediaUrl(course.thumbnail_path);
-  const firstPreview = course.sections.flatMap((s) => s.lessons).find((l) => l.is_preview && l.video_status === "ready");
+  const firstPreview = course.sections.flatMap((s) => s.lessons).find(canPreview);
+  const introEmbedUrl =
+    course.intro_video_status === "ready" && course.intro_video_id && isBunnyConfigured()
+      ? signedEmbedUrl(course.intro_video_id)
+      : null;
   const isLive = course.status === "published";
 
   const facts = [
@@ -98,7 +112,7 @@ export default async function CourseDetailPage({ params }: Props) {
             </p>
             <div className="mt-5 divide-y divide-line overflow-hidden rounded-card border border-line bg-surface">
               {course.sections.map((section, i) => {
-                const seconds = section.lessons.reduce((s, l) => s + l.duration_seconds, 0);
+                const seconds = section.lessons.reduce((s, l) => s + lessonSeconds(l), 0);
                 return (
                   <details key={section.id} open={i === 0} className="group">
                     <summary className="flex cursor-pointer list-none items-center gap-3 px-5 py-4 hover:bg-canvas [&::-webkit-details-marker]:hidden">
@@ -111,14 +125,21 @@ export default async function CourseDetailPage({ params }: Props) {
                     <ul className="border-t border-line bg-canvas/50">
                       {section.lessons.map((lesson) => (
                         <li key={lesson.id} className="flex items-center gap-3 px-5 py-3 text-sm">
-                          <PlayCircle className="size-4 shrink-0 text-ink-muted" aria-hidden="true" />
-                          <span className="flex-1 text-ink">{lesson.title}</span>
-                          {lesson.is_preview && lesson.video_status === "ready" && (
+                          <LessonTypeIcon type={lesson.type} size="sm" />
+                          <span className="flex-1 text-ink">
+                            {lesson.title}
+                            <span className="sr-only"> ({LESSON_TYPES[lesson.type].label})</span>
+                          </span>
+                          {canPreview(lesson) && (
                             <Link href={`/courses/${course.slug}/preview/${lesson.id}`} className="font-semibold text-brand hover:underline">
                               Preview
                             </Link>
                           )}
-                          {lesson.duration_seconds > 0 && <span className="w-12 text-right tabular-nums text-ink-muted">{formatClock(lesson.duration_seconds)}</span>}
+                          {lessonSeconds(lesson) > 0 && (
+                            <span className="w-14 text-right tabular-nums text-ink-muted">
+                              {lesson.type === "video" ? formatClock(lesson.duration_seconds) : `${Math.round(lessonSeconds(lesson) / 60)} min`}
+                            </span>
+                          )}
                         </li>
                       ))}
                     </ul>
@@ -164,22 +185,13 @@ export default async function CourseDetailPage({ params }: Props) {
         {/* Purchase panel */}
         <aside aria-label="Buy this course" className="lg:sticky lg:top-24 lg:self-start">
           <div className="overflow-hidden rounded-[24px] border border-line bg-surface shadow-float">
-            <div className="relative aspect-video bg-brand">
-              {thumb && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={thumb} alt="" className="size-full object-cover" />
-              )}
-              {firstPreview && (
-                <Link
-                  href={`/courses/${course.slug}/preview/${firstPreview.id}`}
-                  className="absolute inset-0 flex items-center justify-center bg-ink/30 text-white transition-colors hover:bg-ink/45"
-                >
-                  <span className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-bold text-ink">
-                    <PlayCircle className="size-5 text-brand" aria-hidden="true" /> Watch a free preview
-                  </span>
-                </Link>
-              )}
-            </div>
+            <CourseMedia
+              title={course.title}
+              thumbnailUrl={thumb}
+              introEmbedUrl={introEmbedUrl}
+              previewHref={firstPreview ? `/courses/${course.slug}/preview/${firstPreview.id}` : null}
+              previewLabel={firstPreview?.type === "text" ? "Read a free preview" : "Watch a free preview"}
+            />
             <div className="flex flex-col gap-4 p-6">
               <div className="flex items-baseline gap-3">
                 <span className="text-3xl font-extrabold tracking-tight text-ink">{formatPrice(price)}</span>

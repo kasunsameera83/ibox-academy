@@ -7,7 +7,7 @@ import { recordAudit } from "@/lib/audit";
 import { hasPermission, requirePermission } from "@/lib/dal/session";
 import { getCourseForEditor } from "@/lib/dal/courses";
 import { linesToList, slugify } from "@/lib/courses/format";
-import { publishChecklist } from "@/lib/courses/checklist";
+import { isReadyToPublish, publishChecklist } from "@/lib/courses/checklist";
 import type { FormState } from "@/lib/forms";
 import { createClient } from "@/lib/supabase/server";
 
@@ -256,8 +256,7 @@ export async function changeCourseStatusAction(formData: FormData) {
   if (!(action in next)) redirect(`/app/owner/courses/${id}?step=publish`);
 
   if (action === "publish") {
-    const checklist = publishChecklist(course);
-    if (checklist.some((item) => !item.done)) redirect(`/app/owner/courses/${id}?step=publish&error=checklist`);
+    if (!isReadyToPublish(publishChecklist(course))) redirect(`/app/owner/courses/${id}?step=publish&error=checklist`);
   }
 
   const supabase = await createClient();
@@ -280,7 +279,10 @@ export async function deleteDraftCourseAction(formData: FormData) {
   if (!course) redirect("/app/owner/courses");
   if (course.status !== "draft") redirect(`/app/owner/courses/${id}?step=publish&error=delete_not_draft`);
 
-  const lessonVideoIds = course.sections.flatMap((s) => s.lessons).map((l) => l.bunny_video_id).filter(Boolean) as string[];
+  const lessonVideoIds = [
+    ...course.sections.flatMap((s) => s.lessons).map((l) => l.bunny_video_id),
+    course.intro_video_id,
+  ].filter(Boolean) as string[];
   const supabase = await createClient();
   const { error } = await supabase.from("courses").delete().eq("id", id).eq("status", "draft");
   if (error) redirect(`/app/owner/courses/${id}?step=publish&error=delete_failed`);

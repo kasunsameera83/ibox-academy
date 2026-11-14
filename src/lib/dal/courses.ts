@@ -1,23 +1,50 @@
 import "server-only";
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
-import type { Category, Course, CourseLevel, CourseWithCurriculum, Lesson, Section } from "@/lib/courses/types";
+import type {
+  Category,
+  Course,
+  CourseLevel,
+  CourseWithCurriculum,
+  Lesson,
+  LessonResource,
+  QuizQuestion,
+  Section,
+} from "@/lib/courses/types";
 
 const COURSE_COLUMNS =
-  "id, slug, title, subtitle, description, category_id, level, language, outcomes, audience, prerequisites, thumbnail_path, price_lkr, sale_price_lkr, access_type, access_days, status, published_at, seo_title, seo_description, created_at, updated_at";
+  "id, slug, title, subtitle, description, category_id, level, language, outcomes, audience, prerequisites, thumbnail_path, price_lkr, sale_price_lkr, access_type, access_days, status, published_at, seo_title, seo_description, preview_checked_at, intro_video_id, intro_video_status, intro_duration_seconds, created_at, updated_at";
 
 const LESSON_COLUMNS =
-  "id, course_id, section_id, title, description, position, is_preview, bunny_video_id, video_status, duration_seconds";
+  "id, course_id, section_id, type, status, title, description, body, settings, reading_minutes, position, is_preview, bunny_video_id, video_status, duration_seconds";
+
+type RawLesson = Omit<Lesson, "resource_count" | "question_count"> & {
+  lesson_resources?: { count: number }[];
+  quiz_questions?: { count: number }[];
+};
 
 type RawCourse = Course & {
   category: CourseWithCurriculum["category"];
-  sections: (Omit<Section, "lessons"> & { lessons: Lesson[] })[];
+  sections: (Omit<Section, "lessons"> & { lessons: RawLesson[] })[];
 };
+
+function normaliseLesson(raw: RawLesson): Lesson {
+  const { lesson_resources, quiz_questions, ...rest } = raw;
+  return {
+    ...rest,
+    settings: (rest.settings ?? {}) as Lesson["settings"],
+    resource_count: lesson_resources?.[0]?.count ?? 0,
+    question_count: quiz_questions?.[0]?.count ?? 0,
+  };
+}
 
 function normalise(raw: RawCourse): CourseWithCurriculum {
   const sections = [...(raw.sections ?? [])]
     .sort((a, b) => a.position - b.position)
-    .map((s) => ({ ...s, lessons: [...(s.lessons ?? [])].sort((a, b) => a.position - b.position) }));
+    .map((s) => ({
+      ...s,
+      lessons: [...(s.lessons ?? [])].sort((a, b) => a.position - b.position).map(normaliseLesson),
+    }));
   return {
     ...raw,
     price_lkr: raw.price_lkr === null ? null : Number(raw.price_lkr),
@@ -26,7 +53,10 @@ function normalise(raw: RawCourse): CourseWithCurriculum {
   };
 }
 
+/** Public: lesson rows only (RLS hides drafts and unpublished courses). */
 const CURRICULUM_SELECT = `${COURSE_COLUMNS}, category:categories(id, name, slug), sections:course_sections(id, course_id, title, position, lessons(${LESSON_COLUMNS}))`;
+/** Content team: adds resource and question counts (tables learners can't read). */
+const TEAM_CURRICULUM_SELECT = `${COURSE_COLUMNS}, category:categories(id, name, slug), sections:course_sections(id, course_id, title, position, lessons(${LESSON_COLUMNS}, lesson_resources(count), quiz_questions(count)))`;
 
 // ---------------------------------------------------------------- categories
 
@@ -90,8 +120,41 @@ export async function listCoursesForTeam(filters: { status?: string; q?: string 
 /** Full course for the editor (RLS lets the content team read drafts). */
 export async function getCourseForEditor(id: string): Promise<CourseWithCurriculum | null> {
   const supabase = await createClient();
-  const { data } = await supabase.from("courses").select(CURRICULUM_SELECT).eq("id", id).maybeSingle();
+  const { data } = await supabase.from("courses").select(TEAM_CURRICULUM_SELECT).eq("id", id).maybeSingle();
   return data ? normalise(data as unknown as RawCourse) : null;
+}
+
+export type LessonEditorData = {
+  lesson: Lesson;
+  course: Pick<Course, "id" | "title" | "slug" | "status">;
+  sections: { id: string; title: string }[];
+  resources: LessonResource[];
+  questions: QuizQuestion[];
+};
+
+export async function getLessonForEditor(courseId: string, lessonId: string): Promise<LessonEditorData | null> {
+  const supabase = await createClient();
+  const [{ data: lesson }, { data: course }, { data: sections }, { data: resources }, { data: questions }] = await Promise.all([
+    supabase.from("lessons").select(LESSON_COLUMNS).eq("id", lessonId).eq("course_id", courseId).maybeSingle(),
+    supabase.from("courses").select("id, title, slug, status").eq("id", courseId).maybeSingle(),
+    supabase.from("course_sections").select("id, title").eq("course_id", courseId).order("position"),
+    supabase.from("lesson_resources").select("id, lesson_id, file_name, storage_path, size_bytes, mime_type, position").eq("lesson_id", lessonId).order("position"),
+    supabase.from("quiz_questions").select("id, lesson_id, position, prompt, options, correct_option_id, explanation").eq("lesson_id", lessonId).order("position"),
+  ]);
+  if (!lesson || !course) return null;
+  const resourceList = (resources ?? []) as LessonResource[];
+  const questionList = (questions ?? []) as QuizQuestion[];
+  return {
+    lesson: {
+      ...normaliseLesson(lesson as unknown as RawLesson),
+      resource_count: resourceList.length,
+      question_count: questionList.length,
+    },
+    course: course as LessonEditorData["course"],
+    sections: (sections ?? []) as { id: string; title: string }[],
+    resources: resourceList,
+    questions: questionList,
+  };
 }
 
 // ---------------------------------------------------------------- public
@@ -123,7 +186,7 @@ export async function listPublishedCourses(filters: CatalogueFilters = {}, limit
   let query = supabase
     .from("courses")
     .select(
-      `id, slug, title, subtitle, level, language, thumbnail_path, price_lkr, sale_price_lkr, access_type, access_days, published_at, ${categoryJoin}, lessons(duration_seconds)`,
+      `id, slug, title, subtitle, level, language, thumbnail_path, price_lkr, sale_price_lkr, access_type, access_days, published_at, ${categoryJoin}, lessons(type, duration_seconds, reading_minutes)`,
     )
     .eq("status", "published")
     .limit(limit);
@@ -149,13 +212,18 @@ export async function listPublishedCourses(filters: CatalogueFilters = {}, limit
   }
 
   const { data } = await query;
-  type Row = Omit<CatalogueCourse, "lesson_count" | "total_seconds"> & { lessons: { duration_seconds: number }[] };
+  type Row = Omit<CatalogueCourse, "lesson_count" | "total_seconds"> & {
+    lessons: { type: string; duration_seconds: number; reading_minutes: number | null }[];
+  };
   return ((data ?? []) as unknown as Row[]).map(({ lessons, ...c }) => ({
     ...c,
     price_lkr: c.price_lkr === null ? null : Number(c.price_lkr),
     sale_price_lkr: c.sale_price_lkr === null ? null : Number(c.sale_price_lkr),
     lesson_count: lessons?.length ?? 0,
-    total_seconds: (lessons ?? []).reduce((sum, l) => sum + (l.duration_seconds ?? 0), 0),
+    total_seconds: (lessons ?? []).reduce(
+      (sum, l) => sum + (l.type === "video" ? l.duration_seconds ?? 0 : l.type === "text" ? (l.reading_minutes ?? 0) * 60 : 0),
+      0,
+    ),
   }));
 }
 
@@ -166,5 +234,11 @@ export async function listPublishedCourses(filters: CatalogueFilters = {}, limit
 export const getCourseBySlug = cache(async (slug: string): Promise<CourseWithCurriculum | null> => {
   const supabase = await createClient();
   const { data } = await supabase.from("courses").select(CURRICULUM_SELECT).eq("slug", slug).maybeSingle();
-  return data ? normalise(data as unknown as RawCourse) : null;
+  if (!data) return null;
+  const course = normalise(data as unknown as RawCourse);
+  // Learner-facing pages only ever show published lessons, even to the team.
+  const sections = course.sections
+    .map((s) => ({ ...s, lessons: s.lessons.filter((l) => l.status === "published") }))
+    .filter((s) => s.lessons.length > 0);
+  return { ...course, sections };
 });

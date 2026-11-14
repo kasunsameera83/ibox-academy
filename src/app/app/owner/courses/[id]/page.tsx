@@ -2,19 +2,21 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Check } from "lucide-react";
-import { Alert } from "@/components/ui/alert";
 import { Card } from "@/components/ui/card";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { CurriculumEditor } from "@/features/courses/components/curriculum-editor";
+import { IntroVideoCard } from "@/features/courses/components/intro-video-card";
 import { OutcomesForm } from "@/features/courses/components/outcomes-form";
 import { OverviewForm } from "@/features/courses/components/overview-form";
 import { PricingForm } from "@/features/courses/components/pricing-form";
 import { PublishPanel } from "@/features/courses/components/publish-panel";
 import { SeoForm } from "@/features/courses/components/seo-form";
 import { ThumbnailUploader } from "@/features/courses/components/thumbnail-uploader";
+import { VideoHostingNotice } from "@/features/courses/components/video-hosting-notice";
 import { isBunnyConfigured } from "@/lib/bunny";
 import { publishChecklist } from "@/lib/courses/checklist";
-import { curriculumStats, formatDuration, mediaUrl } from "@/lib/courses/format";
+import { formatDuration, mediaUrl } from "@/lib/courses/format";
+import { curriculumStats } from "@/lib/courses/lessons";
 import { getCourseForEditor, listCategories } from "@/lib/dal/courses";
 import { hasPermission, requireRole } from "@/lib/dal/session";
 import { cn, param, type SearchParams } from "@/lib/utils";
@@ -22,7 +24,7 @@ import { cn, param, type SearchParams } from "@/lib/utils";
 export const metadata: Metadata = { title: "Edit course" };
 
 const STEPS = [
-  { key: "overview", label: "Overview", description: "Title, description, category and image." },
+  { key: "overview", label: "Overview", description: "Course image, intro video, title, description and category." },
   { key: "outcomes", label: "Outcomes", description: "What learners will be able to do, who it's for and what they need." },
   { key: "curriculum", label: "Curriculum", description: "Sections, lessons, videos and free previews." },
   { key: "pricing", label: "Pricing & access", description: "Price in LKR and how long learners keep access." },
@@ -102,19 +104,17 @@ export default async function CourseEditorPage({ params, searchParams }: { param
           {step === "overview" && (
             <div className="flex flex-col gap-8">
               <ThumbnailUploader courseId={course.id} currentUrl={mediaUrl(course.thumbnail_path)} />
+              <IntroVideoCard course={course} isOwner={user.role === "owner"} canUpload={hasPermission(user, "courses.upload")} />
               <OverviewForm course={course} categories={categories} />
             </div>
           )}
           {step === "outcomes" && <OutcomesForm course={course} />}
           {step === "curriculum" && (
-            <>
-              {!isBunnyConfigured() && (
-                <Alert tone="warning" className="mb-4">
-                  Video uploads are off because the Bunny Stream keys are missing from .env.local. Add them and restart the dev server.
-                </Alert>
-              )}
-              <CurriculumEditor courseId={course.id} sections={course.sections} />
-            </>
+            <CurriculumEditor
+              courseId={course.id}
+              sections={course.sections}
+              videoNotice={<VideoHostingNotice connected={isBunnyConfigured()} isOwner={user.role === "owner"} />}
+            />
           )}
           {step === "pricing" && <PricingForm course={course} />}
           {step === "seo" && <SeoForm course={course} />}

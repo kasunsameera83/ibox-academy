@@ -98,3 +98,49 @@ export function signedEmbedUrl(videoId: string, ttlSeconds = 60 * 60 * 2): strin
   });
   return `https://iframe.mediadelivery.net/embed/${libraryId}/${encodeURIComponent(videoId)}?${params}`;
 }
+
+export type BunnyCaption = { srclang: string; label: string };
+
+export async function getVideoCaptions(videoId: string): Promise<BunnyCaption[]> {
+  const { libraryId } = config();
+  const res = await bunnyFetch(`/library/${libraryId}/videos/${encodeURIComponent(videoId)}`);
+  if (!res.ok) return [];
+  const v = (await res.json()) as { captions?: { srclang?: string; label?: string }[] };
+  return (v.captions ?? [])
+    .filter((c) => c.srclang)
+    .map((c) => ({ srclang: String(c.srclang), label: String(c.label ?? c.srclang) }));
+}
+
+/** Uploads a WebVTT/SRT caption file. */
+export async function addCaption(videoId: string, srclang: string, label: string, fileBase64: string): Promise<void> {
+  const { libraryId } = config();
+  const res = await bunnyFetch(
+    `/library/${libraryId}/videos/${encodeURIComponent(videoId)}/captions/${encodeURIComponent(srclang)}`,
+    { method: "POST", body: JSON.stringify({ srclang, label, captionsFile: fileBase64 }) },
+  );
+  if (!res.ok) throw new Error(`Bunny add caption failed (${res.status})`);
+}
+
+export async function deleteCaption(videoId: string, srclang: string): Promise<void> {
+  const { libraryId } = config();
+  const res = await bunnyFetch(
+    `/library/${libraryId}/videos/${encodeURIComponent(videoId)}/captions/${encodeURIComponent(srclang)}`,
+    { method: "DELETE" },
+  );
+  if (!res.ok && res.status !== 404) throw new Error(`Bunny delete caption failed (${res.status})`);
+}
+
+/** Lightweight check that the library ID and API key work. */
+export async function testConnection(): Promise<{ ok: boolean; message: string }> {
+  if (!isBunnyConfigured()) return { ok: false, message: "Not configured." };
+  try {
+    const { libraryId } = config();
+    const res = await bunnyFetch(`/library/${libraryId}/videos?page=1&itemsPerPage=1`);
+    if (res.ok) return { ok: true, message: "Connected. Uploads and playback are available." };
+    if (res.status === 401) return { ok: false, message: "The API key was rejected. Use the library's API key, not the account key." };
+    if (res.status === 404) return { ok: false, message: "The video library wasn't found. Check the library ID." };
+    return { ok: false, message: `Bunny answered with an error (${res.status}).` };
+  } catch {
+    return { ok: false, message: "Couldn't reach Bunny. Check your internet connection." };
+  }
+}

@@ -1,5 +1,5 @@
 import { brand } from "@/brand";
-import type { AccessType, Course, Section } from "./types";
+import type { AccessType, Course } from "./types";
 
 const lkr = new Intl.NumberFormat("en-LK", {
   style: "currency",
@@ -40,16 +40,6 @@ export function formatClock(totalSeconds: number): string {
   const m = Math.floor(totalSeconds / 60);
   const s = totalSeconds % 60;
   return `${m}:${String(s).padStart(2, "0")}`;
-}
-
-export function curriculumStats(sections: Section[]) {
-  const lessons = sections.flatMap((s) => s.lessons);
-  return {
-    sectionCount: sections.length,
-    lessonCount: lessons.length,
-    totalSeconds: lessons.reduce((sum, l) => sum + (l.duration_seconds ?? 0), 0),
-    previewCount: lessons.filter((l) => l.is_preview).length,
-  };
 }
 
 export function slugify(input: string): string {

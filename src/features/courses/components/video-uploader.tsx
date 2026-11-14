@@ -8,24 +8,47 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { formatClock } from "@/lib/courses/format";
 import type { VideoStatus } from "@/lib/courses/types";
 import {
+  markIntroFailedAction,
+  markIntroUploadedAction,
   markVideoFailedAction,
   markVideoUploadedAction,
+  prepareIntroUploadAction,
   prepareVideoUploadAction,
+  refreshIntroStatusAction,
   refreshVideoStatusAction,
 } from "../video-actions";
+
+/** The same uploader serves lesson videos and course intro videos. */
+const ACTIONS = {
+  lesson: {
+    prepare: prepareVideoUploadAction,
+    uploaded: markVideoUploadedAction,
+    failed: markVideoFailedAction,
+    refresh: refreshVideoStatusAction,
+  },
+  course: {
+    prepare: prepareIntroUploadAction,
+    uploaded: markIntroUploadedAction,
+    failed: markIntroFailedAction,
+    refresh: refreshIntroStatusAction,
+  },
+} as const;
 
 const MAX_BYTES = 5 * 1024 * 1024 * 1024; // 5 GB
 const POLL_MS = 8000;
 
 export function VideoUploader({
-  lessonId,
+  targetId,
+  kind = "lesson",
   status: initialStatus,
   durationSeconds,
 }: {
-  lessonId: string;
+  targetId: string;
+  kind?: "lesson" | "course";
   status: VideoStatus;
   durationSeconds: number;
 }) {
+  const actions = ACTIONS[kind];
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const uploadRef = useRef<Upload | null>(null);
@@ -40,14 +63,14 @@ export function VideoUploader({
   useEffect(() => {
     if (status !== "processing") return;
     const timer = setInterval(async () => {
-      const result = await refreshVideoStatusAction(lessonId);
+      const result = await actions.refresh(targetId);
       if (result.ok && result.status && result.status !== "processing") {
         setStatus(result.status);
         router.refresh();
       }
     }, POLL_MS);
     return () => clearInterval(timer);
-  }, [status, lessonId, router]);
+  }, [status, targetId, actions, router]);
 
   // Warn before closing the tab mid-upload.
   useEffect(() => {
@@ -65,7 +88,7 @@ export function VideoUploader({
     setStatus("uploading");
     setProgress(0);
     setLocalUpload(true);
-    const ticket = await prepareVideoUploadAction(lessonId);
+    const ticket = await actions.prepare(targetId);
     if (!ticket.ok) {
       setLocalUpload(false);
       setStatus(initialStatus === "uploading" ? "none" : initialStatus);
@@ -88,12 +111,12 @@ export function VideoUploader({
         setLocalUpload(false);
         setStatus("failed");
         setError("The upload stopped. Check your connection and try again.");
-        await markVideoFailedAction(lessonId);
+        await actions.failed(targetId);
       },
       onSuccess: async () => {
         setLocalUpload(false);
         setStatus("processing");
-        await markVideoUploadedAction(lessonId);
+        await actions.uploaded(targetId);
         router.refresh();
       },
     });
@@ -106,7 +129,7 @@ export function VideoUploader({
     setLocalUpload(false);
     setStatus("failed");
     setError("Upload cancelled.");
-    await markVideoFailedAction(lessonId);
+    await actions.failed(targetId);
   }
 
   const picker = (

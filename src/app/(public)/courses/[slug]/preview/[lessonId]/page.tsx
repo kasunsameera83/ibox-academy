@@ -6,6 +6,9 @@ import { Alert } from "@/components/ui/alert";
 import { ButtonLink } from "@/components/ui/button";
 import { isBunnyConfigured, signedEmbedUrl } from "@/lib/bunny";
 import { effectivePrice, formatClock, formatPrice } from "@/lib/courses/format";
+import { LESSON_TYPES, lessonMissing } from "@/lib/courses/lessons";
+import { SimpleText } from "@/lib/courses/simple-text";
+import type { Lesson } from "@/lib/courses/types";
 import { getCourseBySlug } from "@/lib/dal/courses";
 import { getCurrentUser, hasPermission } from "@/lib/dal/session";
 import { cn } from "@/lib/utils";
@@ -27,13 +30,14 @@ export default async function PreviewLessonPage({ params }: Props) {
   const lesson = lessons.find((l) => l.id === lessonId);
   if (!lesson) notFound();
 
-  // Learners may watch preview lessons of published courses. The content team may watch any lesson.
+  const openable = (l: Lesson) => l.is_preview && LESSON_TYPES[l.type].previewable && !lessonMissing(l);
+  // Learners may open preview lessons of published courses. The content team may open any published lesson.
   const isTeam = Boolean(user && hasPermission(user, "courses.read"));
-  const allowed = isTeam || (course.status === "published" && lesson.is_preview);
+  const allowed = isTeam || (course.status === "published" && openable(lesson));
   if (!allowed) notFound();
 
-  const previews = lessons.filter((l) => l.is_preview && l.video_status === "ready");
-  const canPlay = lesson.video_status === "ready" && lesson.bunny_video_id && isBunnyConfigured();
+  const previews = lessons.filter(openable);
+  const canPlay = lesson.type === "video" && lesson.video_status === "ready" && lesson.bunny_video_id && isBunnyConfigured();
   const embed = canPlay ? signedEmbedUrl(lesson.bunny_video_id!) : null;
   const price = effectivePrice(course);
 
@@ -45,6 +49,16 @@ export default async function PreviewLessonPage({ params }: Props) {
 
       <div className="mt-5 grid gap-8 lg:grid-cols-[1fr_340px]">
         <div className="min-w-0">
+          {lesson.type === "text" ? (
+            <article className="rounded-[20px] border border-line bg-surface p-6 sm:p-10">
+              <h1 className="text-3xl font-extrabold tracking-tight text-ink">{lesson.title}</h1>
+              {lesson.description && <p className="mt-3 text-lg text-ink-muted">{lesson.description}</p>}
+              <div className="mt-6">
+                {lesson.body ? <SimpleText text={lesson.body} /> : <p className="text-ink-muted">This lesson has no content yet.</p>}
+              </div>
+            </article>
+          ) : (
+          <>
           <div className="aspect-video overflow-hidden rounded-[20px] bg-ink">
             {embed ? (
               <iframe
@@ -64,6 +78,8 @@ export default async function PreviewLessonPage({ params }: Props) {
           </div>
           <h1 className="mt-5 text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">{lesson.title}</h1>
           {lesson.description && <p className="mt-3 max-w-[68ch] whitespace-pre-line text-ink-muted">{lesson.description}</p>}
+          </>
+          )}
           {isTeam && !lesson.is_preview && (
             <Alert tone="info" className="mt-4">You're seeing this as a team member. Learners can only watch lessons marked as free previews.</Alert>
           )}
@@ -90,7 +106,7 @@ export default async function PreviewLessonPage({ params }: Props) {
                     >
                       <PlayCircle className="size-4 shrink-0" aria-hidden="true" />
                       <span className="flex-1">{p.title}</span>
-                      <span className="tabular-nums text-ink-muted">{formatClock(p.duration_seconds)}</span>
+                      <span className="tabular-nums text-ink-muted">{p.type === "video" ? formatClock(p.duration_seconds) : "Read"}</span>
                     </Link>
                   </li>
                 ))}

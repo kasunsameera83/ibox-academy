@@ -27,6 +27,8 @@ Components never use raw colours or the brand name directly — they read from t
    `supabase/migrations/` **in order** (paste the whole file, click **Run**):
    1. `20261114000000_foundation.sql`
    2. `20261114010000_courses.sql`
+   3. `20261114020000_lesson_types.sql`
+   4. `20261114030000_course_intro_video.sql`
 5. **Environment variables** — copy `.env.example` to `.env.local` and fill in
    `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
    (Supabase → Project Settings → API Keys).
