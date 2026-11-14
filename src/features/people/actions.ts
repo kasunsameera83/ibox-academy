@@ -140,7 +140,8 @@ export async function inviteStaffAction(input: z.input<typeof inviteSchema>): Pr
   }
   const { data, error } = await admin.auth.admin.inviteUserByEmail(email, {
     data: { full_name: fullName },
-    redirectTo: `${siteUrl()}/auth/callback?next=/welcome`,
+    // Works with Supabase's standard invite email (no template changes needed).
+    redirectTo: `${siteUrl()}/auth/accept?next=/welcome`,
   });
   if (error || !data.user) {
     if (error?.status === 429 || /rate/i.test(error?.message ?? "")) {

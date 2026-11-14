@@ -42,11 +42,14 @@ Components never use raw colours or the brand name directly — they read from t
 6. **Auth URLs** — Supabase → Authentication → URL Configuration:
    - Site URL: `http://localhost:3000`
    - Redirect URLs: `http://localhost:3000/auth/callback`
-7. **Email templates** (so links work on any device) — Supabase → Authentication → Email Templates:
-   - *Confirm signup*: change the link to
-     `{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=email&next=/app`
-   - *Reset password*: change the link to
-     `{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=recovery&next=/reset-password`
+7. **Email templates** (optional for now). The app works with Supabase's standard emails:
+   sign-up and password links open in the same browser, and staff invites land on `/auth/accept`.
+   New free-plan projects can only edit templates after setting up custom SMTP
+   (Supabase → Authentication → Emails → SMTP Settings; Brevo or Resend have free tiers).
+   Once that's on, change these links so they also work on another device:
+   - *Confirm signup*: `{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=email&next=/app`
+   - *Reset password*: `{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=recovery&next=/reset-password`
+   - *Invite user*: `{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=invite&next=/welcome`
 8. **Google sign-in** — create an OAuth client in Google Cloud Console (Web application), add
    `https://<your-project-ref>.supabase.co/auth/v1/callback` as an authorised redirect URI, then paste
    the client ID and secret into Supabase → Authentication → Sign In / Providers → Google.
