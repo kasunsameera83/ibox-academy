@@ -22,13 +22,16 @@ export type Order = {
   paid_at: string | null;
   expires_at: string | null;
   created_at: string;
+  /** Promotion code used, if any. amount_lkr is already the discounted total. */
+  coupon_code: string | null;
+  discount_lkr: number;
 };
 
 const ORDER_COLUMNS =
-  "id, reference, student_id, course_id, course_title, amount_lkr, currency, method, status, provider_payment_id, slip_path, slip_uploaded_at, review_note, reviewed_at, paid_at, expires_at, created_at";
+  "id, reference, student_id, course_id, course_title, amount_lkr, currency, method, status, provider_payment_id, slip_path, slip_uploaded_at, review_note, reviewed_at, paid_at, expires_at, created_at, coupon_code, discount_lkr";
 
-function norm<T extends { amount_lkr: number }>(o: T): T {
-  return { ...o, amount_lkr: Number(o.amount_lkr) };
+function norm<T extends { amount_lkr: number; discount_lkr?: number }>(o: T): T {
+  return { ...o, amount_lkr: Number(o.amount_lkr), ...(o.discount_lkr !== undefined ? { discount_lkr: Number(o.discount_lkr) } : {}) };
 }
 
 export function isExpired(order: Pick<Order, "status" | "expires_at">) {

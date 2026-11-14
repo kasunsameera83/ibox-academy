@@ -9,13 +9,17 @@ import { getCourseBySlug } from "@/lib/dal/courses";
 import { bankDetailsComplete, getBankDetails, hasActiveEnrolment } from "@/lib/dal/orders";
 import { getCurrentUser } from "@/lib/dal/session";
 import { isPayhereConfigured, payhereMode } from "@/lib/payhere";
+import { param, type SearchParams } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Checkout", robots: { index: false } };
 
-export default async function CheckoutPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function CheckoutPage({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: SearchParams }) {
   const { slug } = await params;
+  const sp = await searchParams;
+  // Share links can carry a promo code: /checkout/<course>?code=LAUNCH20
+  const code = (param(sp.code) ?? "").toUpperCase().replace(/[^A-Z0-9_-]/g, "").slice(0, 30);
   const user = await getCurrentUser();
-  if (!user) redirect(`/login?next=${encodeURIComponent(`/checkout/${slug}`)}`);
+  if (!user) redirect(`/login?next=${encodeURIComponent(`/checkout/${slug}${code ? `?code=${code}` : ""}`)}`);
 
   const course = await getCourseBySlug(slug);
   if (!course || course.status !== "published") notFound();
@@ -43,7 +47,7 @@ export default async function CheckoutPage({ params }: { params: Promise<{ slug:
           {!cardAvailable && !bankAvailable && price > 0 ? (
             <Alert tone="warning">Payments aren't open yet. Please check back soon.</Alert>
           ) : (
-            <CheckoutForm slug={course.slug} priceLabel={formatPrice(price)} isFree={price === 0} cardAvailable={cardAvailable} bankAvailable={bankAvailable} />
+            <CheckoutForm slug={course.slug} listPrice={price} isFree={price === 0} cardAvailable={cardAvailable} bankAvailable={bankAvailable} initialCode={code} />
           )}
         </section>
 
@@ -64,9 +68,10 @@ export default async function CheckoutPage({ params }: { params: Promise<{ slug:
               </div>
             )}
             <div className="flex justify-between text-lg font-extrabold text-ink">
-              <dt>Total</dt>
+              <dt>Price</dt>
               <dd>{formatPrice(price)}</dd>
             </div>
+            {price > 0 && <p className="text-xs text-ink-muted">Have a promo code? Add it with your payment details.</p>}
           </dl>
           <ul className="mt-4 flex flex-col gap-2 text-sm text-ink-muted">
             <li className="flex gap-2"><CheckCircle2 className="mt-0.5 size-4 shrink-0 text-success" aria-hidden="true" /> {accessLabel(course.access_type, course.access_days)}, starting when payment is confirmed</li>

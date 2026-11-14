@@ -115,10 +115,10 @@ export async function getStudentDetail(id: string): Promise<StudentDetail | null
   };
 }
 
-export async function listCoursesForAccess(): Promise<{ id: string; title: string; status: string }[]> {
+export async function listCoursesForAccess(): Promise<{ id: string; title: string; slug: string; status: string }[]> {
   const supabase = await createClient();
-  const { data } = await supabase.from("courses").select("id, title, status").neq("status", "archived").order("title");
-  return (data ?? []) as { id: string; title: string; status: string }[];
+  const { data } = await supabase.from("courses").select("id, title, slug, status").neq("status", "archived").order("title");
+  return (data ?? []) as { id: string; title: string; slug: string; status: string }[];
 }
 
 // ---------------------------------------------------------------- staff

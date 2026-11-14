@@ -27,11 +27,23 @@ export async function startCheckoutAction(_prev: CheckoutState, formData: FormDa
   const user = await requireUser();
   const slug = String(formData.get("slug") ?? "");
   const method = String(formData.get("method") ?? "");
-  const values = { phone: String(formData.get("phone") ?? ""), city: String(formData.get("city") ?? ""), method };
+  const coupon = String(formData.get("coupon") ?? "").trim().toUpperCase().slice(0, 30);
+  const values = { phone: String(formData.get("phone") ?? ""), city: String(formData.get("city") ?? ""), method, coupon };
 
   const course = await getCourseBySlug(slug);
   if (!course || course.status !== "published") return { error: "This course isn't available right now.", values };
-  const price = course.sale_price_lkr ?? course.price_lkr ?? 0;
+  const listPrice = course.sale_price_lkr ?? course.price_lkr ?? 0;
+
+  // A code may lower the price (or make it free). The database applies it again when creating the order.
+  let price = listPrice;
+  if (coupon && listPrice > 0) {
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc("preview_coupon", { p_course_id: course.id, p_code: coupon });
+    if (error) {
+      return { fieldErrors: { coupon: [error.code === "22023" ? `${error.message}.` : "The code couldn't be checked."] }, values };
+    }
+    price = Number((data as { total: number }).total);
+  }
 
   if (price > 0 && method !== "payhere" && method !== "bank_transfer") {
     return { fieldErrors: { method: ["Choose how you'd like to pay."] }, values };
@@ -52,9 +64,11 @@ export async function startCheckoutAction(_prev: CheckoutState, formData: FormDa
   const { data, error } = await supabase.rpc("create_order", {
     p_course_id: course.id,
     p_method: price === 0 ? "free" : method,
+    p_coupon_code: coupon && listPrice > 0 ? coupon : null,
   });
   if (error) {
     if (error.code === "23505") redirect(`/app/student/learning?enrolled=${course.slug}`);
+    if (error.code === "22023") return { fieldErrors: { coupon: [`${error.message}.`] }, values };
     return { error: "We couldn't start your order. Please try again.", values };
   }
   const order = (Array.isArray(data) ? data[0] : data) as { order_id: string; reference: string; status: string; amount_lkr: number };

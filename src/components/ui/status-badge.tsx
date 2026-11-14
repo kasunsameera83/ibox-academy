@@ -31,6 +31,8 @@ const STATUS: Record<string, { label: string; tone: Tone }> = {
   completed: { label: "Completed", tone: "success" },
   submitted: { label: "To review", tone: "brand" },
   approved: { label: "Approved", tone: "success" },
+  paused: { label: "Paused", tone: "neutral" },
+  used_up: { label: "Fully used", tone: "neutral" },
   expired: { label: "Expired", tone: "neutral" },
   revoked: { label: "Revoked", tone: "danger" },
   invited: { label: "Invited", tone: "brand" },

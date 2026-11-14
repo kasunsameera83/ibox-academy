@@ -127,7 +127,15 @@ export default async function OrderPage({ params, searchParams }: { params: Prom
       <dl className="mt-6 grid gap-3 rounded-[20px] border border-line bg-surface p-5 text-sm sm:grid-cols-2">
         <div><dt className="text-ink-muted">Order reference</dt><dd className="font-mono font-semibold text-ink">{order.reference}</dd></div>
         <div><dt className="text-ink-muted">Course</dt><dd className="font-semibold text-ink"><Link href={courseHref} className="hover:text-brand">{order.course_title}</Link></dd></div>
-        <div><dt className="text-ink-muted">Amount</dt><dd className="font-semibold text-ink">{formatPrice(order.amount_lkr)}</dd></div>
+        <div>
+          <dt className="text-ink-muted">Amount</dt>
+          <dd className="font-semibold text-ink">
+            {formatPrice(order.amount_lkr)}
+            {order.coupon_code && order.discount_lkr > 0 && (
+              <span className="ml-2 text-xs font-medium text-success-ink">{order.coupon_code} saved {formatPrice(order.discount_lkr)}</span>
+            )}
+          </dd>
+        </div>
         <div><dt className="text-ink-muted">Payment method</dt><dd className="font-semibold text-ink">{METHOD_LABELS[order.method]}</dd></div>
       </dl>
     </div>

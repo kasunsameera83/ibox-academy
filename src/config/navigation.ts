@@ -46,7 +46,7 @@ export const ownerNav: NavItem[] = [
   { label: "Staff & roles", href: "/app/owner/staff", icon: "shield" },
   { label: "Orders", href: "/app/owner/orders", icon: "cart", phase: 3, description: "Order search, details and status timeline." },
   { label: "Payments", href: "/app/owner/payments", icon: "wallet", phase: 3, description: "PayHere reconciliation, bank transfer verification and refunds." },
-  { label: "Promotions", href: "/app/owner/promotions", icon: "tag", phase: 4, description: "Coupon codes, limits and expiry." },
+  { label: "Promotions", href: "/app/owner/promotions", icon: "tag" },
   { label: "Support", href: "/app/owner/support", icon: "life-buoy", phase: 4, description: "Ticket queue, assignment and internal notes." },
   { label: "Reports", href: "/app/owner/reports", icon: "chart", phase: 4, description: "Sales, enrolments, completion and exports." },
   { label: "Security", href: "/app/owner/security", icon: "lock", phase: 4, description: "Login events, role changes, audit log and sessions." },

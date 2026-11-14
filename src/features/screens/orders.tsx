@@ -76,7 +76,10 @@ export async function OrdersScreen({ searchParams, user, base }: { searchParams:
                     </td>
                     <td className="max-w-56 truncate px-3 py-3 text-ink">{o.course_title}</td>
                     <td className="px-3 py-3 text-ink-muted">{METHOD_LABELS[o.method]}</td>
-                    <td className="px-3 py-3 text-right font-semibold tabular-nums text-ink">{formatPrice(o.amount_lkr)}</td>
+                    <td className="px-3 py-3 text-right font-semibold tabular-nums text-ink">
+                      {formatPrice(o.amount_lkr)}
+                      {o.coupon_code && <span className="block text-xs font-medium text-success-ink">{o.coupon_code}</span>}
+                    </td>
                     <td className="px-3 py-3">{isExpired(o) ? <StatusBadge status="expired" /> : <StatusBadge status={o.status} />}</td>
                     <td className="px-5 py-3 text-xs text-ink-muted">{dateFormat.format(new Date(o.created_at))}</td>
                   </tr>

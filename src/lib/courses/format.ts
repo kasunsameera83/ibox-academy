@@ -13,6 +13,11 @@ export function formatPrice(value: number | null | undefined): string {
   return lkr.format(Number(value));
 }
 
+/** Money amounts such as revenue: always a number, never "Free". */
+export function formatLkr(value: number | null | undefined): string {
+  return lkr.format(Number(value ?? 0));
+}
+
 /** Price a learner pays now (sale price when set). */
 export function effectivePrice(course: Pick<Course, "price_lkr" | "sale_price_lkr">): number | null {
   if (course.sale_price_lkr !== null && course.sale_price_lkr !== undefined) return Number(course.sale_price_lkr);
