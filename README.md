@@ -1,0 +1,67 @@
+# iBox Academy — online learning platform
+
+Sri Lanka-first learning platform. Next.js (App Router) + TypeScript + Supabase + Tailwind CSS.
+Product spec: the UI/UX blueprint PDF. Build plan: [`docs/IMPLEMENTATION_PLAN.md`](docs/IMPLEMENTATION_PLAN.md).
+
+## Rebranding — everything is in one place
+
+| What | Where |
+|---|---|
+| App name, tagline, description, logo/icon paths, contact details, social links | `src/brand/brand.config.ts` |
+| Colours, radius, shadows | `src/brand/tokens.css` |
+| Font | `src/brand/fonts.ts` |
+| Logo / favicon image files | `public/brand/` |
+| Home page text (until the CMS arrives in Phase 2) | `src/config/home-content.ts` |
+
+Components never use raw colours or the brand name directly — they read from these files.
+
+## First-time setup (Windows)
+
+1. **Install Node.js 22 LTS** from nodejs.org (if not installed). Check with `node -v`.
+2. **Install packages** — open a terminal in `E:\Kova Apps\Kivora` and run:
+   ```
+   npm install
+   ```
+3. **Create a Supabase project** at supabase.com (region: South Asia (Mumbai) is closest to Sri Lanka; otherwise Singapore).
+4. **Create the database** — in Supabase open **SQL Editor**, paste the whole of
+   `supabase/migrations/20261114000000_foundation.sql` and click **Run**.
+5. **Environment variables** — copy `.env.example` to `.env.local` and fill in
+   `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+   (Supabase → Project Settings → API Keys).
+6. **Auth URLs** — Supabase → Authentication → URL Configuration:
+   - Site URL: `http://localhost:3000`
+   - Redirect URLs: `http://localhost:3000/auth/callback`
+7. **Email templates** (so links work on any device) — Supabase → Authentication → Email Templates:
+   - *Confirm signup*: change the link to
+     `{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=email&next=/app`
+   - *Reset password*: change the link to
+     `{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=recovery&next=/reset-password`
+8. **Google sign-in** — create an OAuth client in Google Cloud Console (Web application), add
+   `https://<your-project-ref>.supabase.co/auth/v1/callback` as an authorised redirect URI, then paste
+   the client ID and secret into Supabase → Authentication → Sign In / Providers → Google.
+9. **Run it**:
+   ```
+   npm run dev
+   ```
+   Open http://localhost:3000, sign up, confirm your email.
+10. **Make yourself the Owner** — in the SQL Editor run (with your email):
+    ```sql
+    update public.profiles set role = 'owner'
+    where id = (select id from auth.users where email = 'you@example.com');
+    ```
+    Sign out and in again; you'll land in `/app/owner`.
+
+## Scripts
+
+- `npm run dev` — development server
+- `npm run build` / `npm start` — production build
+- `npm run typecheck` — TypeScript check
+
+## Security model (summary)
+
+- `src/proxy.ts` refreshes the session and sends signed-out visitors to `/login`.
+- `src/lib/dal/session.ts` verifies the user (`getClaims()`) and role/permissions in every
+  workspace layout, page and Server Action.
+- Postgres RLS + column grants enforce the same rules in the database. New users are always
+  `student`; roles can't be changed from the browser.
+- Never put secret keys in `NEXT_PUBLIC_*` variables.

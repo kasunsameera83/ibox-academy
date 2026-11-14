@@ -1,0 +1,77 @@
+@import "tailwindcss";
+@import "../brand/tokens.css";
+
+/* Maps brand tokens to Tailwind utilities (bg-brand, text-ink, rounded-card…). */
+@theme inline {
+  --color-brand: var(--brand-primary);
+  --color-brand-hover: var(--brand-primary-hover);
+  --color-brand-soft: var(--brand-primary-soft);
+  --color-on-brand: var(--brand-on-primary);
+
+  --color-accent: var(--brand-accent);
+  --color-on-accent: var(--brand-accent-ink);
+  --color-lilac: var(--brand-lilac);
+
+  --color-ink: var(--brand-ink);
+  --color-ink-muted: var(--brand-ink-muted);
+  --color-canvas: var(--brand-canvas);
+  --color-surface: var(--brand-surface);
+  --color-line: var(--brand-border);
+
+  --color-success: var(--brand-success);
+  --color-success-ink: var(--brand-success-ink);
+  --color-success-soft: var(--brand-success-soft);
+  --color-warning: var(--brand-warning);
+  --color-warning-ink: var(--brand-warning-ink);
+  --color-warning-soft: var(--brand-warning-soft);
+  --color-danger: var(--brand-danger);
+  --color-danger-ink: var(--brand-danger-ink);
+  --color-danger-soft: var(--brand-danger-soft);
+  --color-info: var(--brand-info);
+  --color-info-ink: var(--brand-info-ink);
+  --color-info-soft: var(--brand-info-soft);
+
+  --radius-card: var(--brand-radius-card);
+  --radius-control: var(--brand-radius-control);
+  --shadow-float: var(--brand-shadow-float);
+
+  --font-sans: var(--font-brand), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    background-color: var(--brand-canvas);
+    color: var(--brand-ink);
+  }
+  :focus-visible {
+    outline: 2px solid var(--brand-primary);
+    outline-offset: 2px;
+  }
+  dialog::backdrop {
+    background: rgb(33 31 50 / 0.45);
+  }
+}
+
+/* Landing page: one orchestrated entrance for the hero phone and stickers. */
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(24px) rotate(var(--tilt, 0deg)); }
+  to { opacity: 1; transform: translateY(0) rotate(var(--tilt, 0deg)); }
+}
+.rise-in {
+  animation: rise-in 700ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: var(--delay, 0ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
