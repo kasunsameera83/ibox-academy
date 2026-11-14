@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { recordAudit } from "@/lib/audit";
 import { addCaption, deleteCaption, isBunnyConfigured, testConnection } from "@/lib/bunny";
@@ -9,13 +8,14 @@ import { LESSON_TYPES, estimateReadingMinutes } from "@/lib/courses/lessons";
 import type { LessonType, QuizOption } from "@/lib/courses/types";
 import type { FormState } from "@/lib/forms";
 import { createClient } from "@/lib/supabase/server";
+import { revalidateWorkspaces } from "@/lib/workspace";
 
 type Result = { ok: true } | { ok: false; error: string };
 const fail = (error: string): Result => ({ ok: false, error });
 
 function revalidateLesson(courseId: string, lessonId: string) {
-  revalidatePath(`/app/owner/courses/${courseId}/lessons/${lessonId}`);
-  revalidatePath(`/app/owner/courses/${courseId}`);
+  revalidateWorkspaces(`/courses/${courseId}/lessons/${lessonId}`);
+  revalidateWorkspaces(`/courses/${courseId}`);
 }
 
 async function lessonType(supabase: Awaited<ReturnType<typeof createClient>>, lessonId: string, courseId: string) {
@@ -284,7 +284,7 @@ export async function markPreviewCheckedAction(courseId: string, checked: boolea
     .update({ preview_checked_at: checked ? new Date().toISOString() : null, updated_by: user.id })
     .eq("id", courseId);
   if (error) return fail("Couldn't save.");
-  revalidatePath(`/app/owner/courses/${courseId}`);
+  revalidateWorkspaces(`/courses/${courseId}`);
   return { ok: true };
 }
 

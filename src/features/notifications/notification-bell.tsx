@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   AlertTriangle, Bell, BellRing, CheckCheck, ClipboardCheck, CreditCard, FileCheck2, Gift, UserPlus, X, type LucideIcon,
 } from "lucide-react";
@@ -56,6 +56,12 @@ function KindIcon({ kind }: { kind: Kind }) {
 /** Bell with unread count, dropdown list, live pop-ups and optional desktop alerts. */
 export function NotificationBell({ userId }: { userId: string }) {
   const router = useRouter();
+  const pathname = usePathname();
+  const pathRef = useRef(pathname);
+  pathRef.current = pathname;
+  // Team alerts link to Owner screens; staff open the same screen in their workspace.
+  const resolve = (link: string | null) =>
+    link && pathRef.current.startsWith("/app/staff") ? link.replace(/^\/app\/owner\//, "/app/staff/") : link;
   const [items, setItems] = useState<Notification[]>([]);
   const [open, setOpen] = useState(false);
   const [toasts, setToasts] = useState<Notification[]>([]);
@@ -91,7 +97,7 @@ export function NotificationBell({ userId }: { userId: string }) {
             const desktopNote = new Notification(n.title, { body: n.body ?? undefined, tag: n.id });
             desktopNote.onclick = () => {
               window.focus();
-              if (n.link) router.push(n.link);
+              { const href = resolve(n.link); if (href) router.push(href); }
             };
           }
           router.refresh();
@@ -129,7 +135,7 @@ export function NotificationBell({ userId }: { userId: string }) {
     void markRead([n.id]);
     setOpen(false);
     setToasts((prev) => prev.filter((t) => t.id !== n.id));
-    if (n.link) router.push(n.link);
+    { const href = resolve(n.link); if (href) router.push(href); }
   }
 
   async function enableDesktop() {

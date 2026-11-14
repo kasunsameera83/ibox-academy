@@ -10,6 +10,7 @@ import { requirePermission, requireRole, requireUser } from "@/lib/dal/session";
 import type { FormState } from "@/lib/forms";
 import { buildCheckout, isPayhereConfigured } from "@/lib/payhere";
 import { createClient } from "@/lib/supabase/server";
+import { revalidateWorkspaces, workspaceBase } from "@/lib/workspace";
 
 export type CheckoutState = FormState & { payhere?: { url: string; fields: Record<string, string> } };
 
@@ -75,7 +76,7 @@ export async function submitSlipAction(orderId: string, reference: string, path:
   const { error } = await supabase.rpc("submit_bank_slip", { p_order_id: orderId, p_path: path });
   if (error) return { ok: false, error: "The slip couldn't be attached to your order. Please try again." };
   revalidatePath(`/checkout/order/${reference}`);
-  revalidatePath("/app/owner/payments");
+  revalidateWorkspaces("/payments");
   return { ok: true };
 }
 
@@ -87,11 +88,11 @@ export async function getOrderStatusAction(reference: string): Promise<string | 
 }
 
 export async function reviewBankTransferAction(formData: FormData) {
-  await requirePermission("payments.verify_bank_transfer");
+  const user = await requirePermission("payments.verify_bank_transfer");
   const orderId = String(formData.get("orderId") ?? "");
   const decision = String(formData.get("decision") ?? "");
   const note = String(formData.get("note") ?? "").trim();
-  if (decision === "reject" && !note) redirect(`/app/owner/payments?error=reason&order=${orderId}`);
+  if (decision === "reject" && !note) redirect(`${workspaceBase(user)}/payments?error=reason&order=${orderId}`);
 
   const supabase = await createClient();
   const { error } = await supabase.rpc("review_bank_transfer", {
@@ -99,10 +100,10 @@ export async function reviewBankTransferAction(formData: FormData) {
     p_approve: decision === "approve",
     p_note: note || null,
   });
-  if (error) redirect(`/app/owner/payments?error=review`);
-  revalidatePath("/app/owner/payments");
-  revalidatePath("/app/owner/orders");
-  redirect(`/app/owner/payments?done=${decision}`);
+  if (error) redirect(`${workspaceBase(user)}/payments?error=review`);
+  revalidateWorkspaces("/payments");
+  revalidateWorkspaces("/orders");
+  redirect(`${workspaceBase(user)}/payments?done=${decision}`);
 }
 
 const bankSchema = z.object({

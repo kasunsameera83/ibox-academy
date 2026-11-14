@@ -5,6 +5,7 @@ import { createVideo, deleteVideo, getVideoState, isBunnyConfigured, tusUploadCr
 import { recordAudit } from "@/lib/audit";
 import { requirePermission } from "@/lib/dal/session";
 import { createClient } from "@/lib/supabase/server";
+import { revalidateWorkspaces } from "@/lib/workspace";
 
 type LessonRow = { id: string; course_id: string; title: string; type: string; bunny_video_id: string | null };
 
@@ -54,8 +55,8 @@ export async function markVideoUploadedAction(lessonId: string): Promise<{ ok: b
   const { supabase, lesson } = await loadLesson(lessonId);
   if (!lesson) return { ok: false };
   await supabase.from("lessons").update({ video_status: "processing" }).eq("id", lessonId);
-  revalidatePath(`/app/owner/courses/${lesson.course_id}`);
-  revalidatePath(`/app/owner/courses/${lesson.course_id}/lessons/${lesson.id}`);
+  revalidateWorkspaces(`/courses/${lesson.course_id}`);
+  revalidateWorkspaces(`/courses/${lesson.course_id}/lessons/${lesson.id}`);
   return { ok: true };
 }
 
@@ -64,7 +65,7 @@ export async function markVideoFailedAction(lessonId: string): Promise<{ ok: boo
   const { supabase, lesson } = await loadLesson(lessonId);
   if (!lesson) return { ok: false };
   await supabase.from("lessons").update({ video_status: "failed" }).eq("id", lessonId);
-  revalidatePath(`/app/owner/courses/${lesson.course_id}`);
+  revalidateWorkspaces(`/courses/${lesson.course_id}`);
   return { ok: true };
 }
 
@@ -82,8 +83,8 @@ export async function refreshVideoStatusAction(
       .update({ video_status: state.state, duration_seconds: state.durationSeconds })
       .eq("id", lessonId);
     if (state.state !== "processing") {
-      revalidatePath(`/app/owner/courses/${lesson.course_id}`);
-      revalidatePath(`/app/owner/courses/${lesson.course_id}/lessons/${lesson.id}`);
+      revalidateWorkspaces(`/courses/${lesson.course_id}`);
+      revalidateWorkspaces(`/courses/${lesson.course_id}/lessons/${lesson.id}`);
     }
     return { ok: true, status: state.state };
   } catch {
@@ -102,7 +103,7 @@ async function loadCourse(courseId: string) {
 }
 
 function revalidateIntro(course: CourseVideoRow) {
-  revalidatePath(`/app/owner/courses/${course.id}`);
+  revalidateWorkspaces(`/courses/${course.id}`);
   revalidatePath(`/courses/${course.slug}`);
 }
 

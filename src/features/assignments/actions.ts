@@ -1,10 +1,10 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { recordAudit } from "@/lib/audit";
 import { requirePermission } from "@/lib/dal/session";
 import { createClient } from "@/lib/supabase/server";
+import { revalidateWorkspaces } from "@/lib/workspace";
 
 const schema = z.object({
   id: z.string().uuid(),
@@ -24,7 +24,7 @@ export async function reviewAssignmentAction(input: { id: string; approve: boole
   if (error) return { ok: false, error: error.code === "22023" ? error.message : "The review couldn't be saved. Please try again." };
 
   await recordAudit(supabase, user.id, approve ? "assignment.approve" : "assignment.request_changes", { type: "assignment_submission", id });
-  revalidatePath("/app/owner/assignments");
-  revalidatePath(`/app/owner/assignments/${id}`);
+  revalidateWorkspaces("/assignments");
+  revalidateWorkspaces(`/assignments/${id}`);
   return { ok: true };
 }

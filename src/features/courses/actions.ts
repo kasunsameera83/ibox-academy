@@ -10,14 +10,15 @@ import { linesToList, slugify } from "@/lib/courses/format";
 import { isReadyToPublish, publishChecklist } from "@/lib/courses/checklist";
 import type { FormState } from "@/lib/forms";
 import { createClient } from "@/lib/supabase/server";
+import { revalidateWorkspaces, workspaceBase } from "@/lib/workspace";
 
 function fieldErrors(error: z.ZodError) {
   return z.flattenError(error).fieldErrors as Record<string, string[]>;
 }
 
 function revalidateCourse(id: string, slug?: string) {
-  revalidatePath(`/app/owner/courses/${id}`);
-  revalidatePath("/app/owner/courses");
+  revalidateWorkspaces(`/courses/${id}`);
+  revalidateWorkspaces("/courses");
   revalidatePath("/courses");
   if (slug) revalidatePath(`/courses/${slug}`);
   revalidatePath("/");
@@ -53,8 +54,8 @@ export async function createCourseAction(_prev: FormState, formData: FormData): 
   if (error || !data) return { error: "The course couldn't be created. Please try again.", values: { title } };
 
   await recordAudit(supabase, user.id, "course.create", { type: "course", id: data.id });
-  revalidatePath("/app/owner/courses");
-  redirect(`/app/owner/courses/${data.id}?step=overview`);
+  revalidateWorkspaces("/courses");
+  redirect(`${workspaceBase(user)}/courses/${data.id}?step=overview`);
 }
 
 // ------------------------------------------------------------------ overview
@@ -245,7 +246,7 @@ export async function changeCourseStatusAction(formData: FormData) {
   if (!hasPermission(user, "courses.publish")) redirect(`/access-denied?permission=courses.publish`);
 
   const course = await getCourseForEditor(id);
-  if (!course) redirect("/app/owner/courses");
+  if (!course) redirect(`${workspaceBase(user)}/courses`);
 
   const next: Record<StatusAction, string> = {
     publish: "published",
@@ -253,10 +254,10 @@ export async function changeCourseStatusAction(formData: FormData) {
     archive: "archived",
     restore: "draft",
   };
-  if (!(action in next)) redirect(`/app/owner/courses/${id}?step=publish`);
+  if (!(action in next)) redirect(`${workspaceBase(user)}/courses/${id}?step=publish`);
 
   if (action === "publish") {
-    if (!isReadyToPublish(publishChecklist(course))) redirect(`/app/owner/courses/${id}?step=publish&error=checklist`);
+    if (!isReadyToPublish(publishChecklist(course))) redirect(`${workspaceBase(user)}/courses/${id}?step=publish&error=checklist`);
   }
 
   const supabase = await createClient();
@@ -264,11 +265,11 @@ export async function changeCourseStatusAction(formData: FormData) {
     .from("courses")
     .update({ status: next[action], updated_by: user.id })
     .eq("id", id);
-  if (error) redirect(`/app/owner/courses/${id}?step=publish&error=status`);
+  if (error) redirect(`${workspaceBase(user)}/courses/${id}?step=publish&error=status`);
 
   await recordAudit(supabase, user.id, `course.${action}`, { type: "course", id }, { from: course.status, to: next[action] });
   revalidateCourse(id, course.slug);
-  redirect(`/app/owner/courses/${id}?step=publish&done=${action}`);
+  redirect(`${workspaceBase(user)}/courses/${id}?step=publish&done=${action}`);
 }
 
 export async function deleteDraftCourseAction(formData: FormData) {
@@ -276,8 +277,8 @@ export async function deleteDraftCourseAction(formData: FormData) {
   if (user.role !== "owner") redirect("/access-denied");
   const id = String(formData.get("id") ?? "");
   const course = await getCourseForEditor(id);
-  if (!course) redirect("/app/owner/courses");
-  if (course.status !== "draft") redirect(`/app/owner/courses/${id}?step=publish&error=delete_not_draft`);
+  if (!course) redirect(`${workspaceBase(user)}/courses`);
+  if (course.status !== "draft") redirect(`${workspaceBase(user)}/courses/${id}?step=publish&error=delete_not_draft`);
 
   const lessonVideoIds = [
     ...course.sections.flatMap((s) => s.lessons).map((l) => l.bunny_video_id),
@@ -285,7 +286,7 @@ export async function deleteDraftCourseAction(formData: FormData) {
   ].filter(Boolean) as string[];
   const supabase = await createClient();
   const { error } = await supabase.from("courses").delete().eq("id", id).eq("status", "draft");
-  if (error) redirect(`/app/owner/courses/${id}?step=publish&error=delete_failed`);
+  if (error) redirect(`${workspaceBase(user)}/courses/${id}?step=publish&error=delete_failed`);
 
   // Best-effort clean-up of media.
   if (course.thumbnail_path) await supabase.storage.from("course-media").remove([course.thumbnail_path]);
@@ -295,6 +296,6 @@ export async function deleteDraftCourseAction(formData: FormData) {
   }
 
   await recordAudit(supabase, user.id, "course.delete", { type: "course", id }, { title: course.title });
-  revalidatePath("/app/owner/courses");
-  redirect("/app/owner/courses?deleted=1");
+  revalidateWorkspaces("/courses");
+  redirect(`${workspaceBase(user)}/courses?deleted=1`);
 }

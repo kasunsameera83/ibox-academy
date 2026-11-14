@@ -1,12 +1,12 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { isPermissionKey } from "@/lib/auth/permissions";
-import { requireRole } from "@/lib/dal/session";
+import { requirePermission, requireRole } from "@/lib/dal/session";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { siteUrl } from "@/lib/utils";
+import { revalidateWorkspaces } from "@/lib/workspace";
 
 type Result = { ok: true; message?: string } | { ok: false; error: string };
 
@@ -29,15 +29,16 @@ async function setSignInBlocked(userId: string, blocked: boolean): Promise<boole
 }
 
 function refreshPeople(userId?: string) {
-  revalidatePath("/app/owner/students");
-  revalidatePath("/app/owner/staff");
-  if (userId) revalidatePath(`/app/owner/students/${userId}`);
+  revalidateWorkspaces("/students");
+  revalidateWorkspaces("/staff");
+  if (userId) revalidateWorkspaces(`/students/${userId}`);
 }
 
 // ---------------------------------------------------------------- accounts
 
 export async function setAccountStatusAction(userId: string, status: "active" | "suspended" | "deactivated", reason: string): Promise<Result> {
-  await requireRole("owner");
+  // Staff with students.suspend can change learners only; the database enforces that.
+  await requirePermission("students.suspend");
   if (!uuid.safeParse(userId).success) return { ok: false, error: "Account not found." };
   if (!["active", "suspended", "deactivated"].includes(status)) return { ok: false, error: "Choose a valid status." };
 

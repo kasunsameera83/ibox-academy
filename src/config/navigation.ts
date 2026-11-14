@@ -56,13 +56,14 @@ export const ownerNav: NavItem[] = [
 
 export const staffNav: NavItem[] = [
   { label: "My workspace", href: "/app/staff", icon: "home" },
-  { label: "My tasks", href: "/app/staff/tasks", icon: "list", phase: 5, description: "Work assigned to you, with due dates and priority." },
-  { label: "Content", href: "/app/staff/content", icon: "book", permission: "courses.read", phase: 5, description: "Course drafts, curriculum and media uploads." },
-  { label: "Learners", href: "/app/staff/learners", icon: "users", permission: "students.read", phase: 5, description: "Learner account summaries and support context." },
-  { label: "Orders", href: "/app/staff/orders", icon: "cart", permission: "orders.read", phase: 5, description: "Order lookup and payment references." },
+  { label: "Courses", href: "/app/staff/courses", icon: "book", permission: "courses.read" },
+  { label: "Assignments", href: "/app/staff/assignments", icon: "clipboard", permission: "courses.edit" },
+  { label: "Learners", href: "/app/staff/students", icon: "users", permission: "students.read" },
+  { label: "Orders", href: "/app/staff/orders", icon: "cart", permission: "orders.read" },
+  { label: "Payments", href: "/app/staff/payments", icon: "wallet", permission: "payments.read" },
   { label: "Support", href: "/app/staff/support", icon: "inbox", permission: "tickets.read", phase: 5, description: "Ticket queue and replies." },
   { label: "Reports", href: "/app/staff/reports", icon: "chart", permission: "reports.read", phase: 5, description: "Reports assigned to you." },
-  { label: "Settings", href: "/app/staff/settings", icon: "settings", phase: 1, description: "Profile, password, MFA and sessions." },
+  { label: "Settings", href: "/app/staff/settings", icon: "settings", description: "Profile, password, two-step verification and sessions." },
 ];
 
 export const publicNav = [

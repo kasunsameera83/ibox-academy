@@ -1,10 +1,10 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { requirePermission } from "@/lib/dal/session";
 import { LESSON_TYPES } from "@/lib/courses/lessons";
 import type { LessonStatus, LessonType } from "@/lib/courses/types";
 import { createClient } from "@/lib/supabase/server";
+import { revalidateWorkspaces } from "@/lib/workspace";
 
 export type ActionResult = { ok: true; id?: string } | { ok: false; error: string };
 
@@ -16,7 +16,7 @@ function clean(title: unknown, max: number) {
 }
 
 function touch(courseId: string) {
-  revalidatePath(`/app/owner/courses/${courseId}`);
+  revalidateWorkspaces(`/courses/${courseId}`);
 }
 
 export async function addSectionAction(courseId: string, title: string): Promise<ActionResult> {

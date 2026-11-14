@@ -71,7 +71,7 @@ function serialise(layout: Layout) {
 
 // ------------------------------------------------------------------ lesson row
 
-function LessonRow({ courseId, lesson, run, busy }: { courseId: string; lesson: Lesson; run: Run; busy: boolean }) {
+function LessonRow({ courseId, lessonsBase, lesson, run, busy }: { courseId: string; lessonsBase: string; lesson: Lesson; run: Run; busy: boolean }) {
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({
     id: lesson.id,
     data: { type: "lesson" },
@@ -79,7 +79,7 @@ function LessonRow({ courseId, lesson, run, busy }: { courseId: string; lesson: 
   const router = useRouter();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const status = lessonDisplayStatus(lesson);
-  const editHref = `/app/owner/courses/${courseId}/lessons/${lesson.id}`;
+  const editHref = `${lessonsBase}/${lesson.id}`;
   const previewable = LESSON_TYPES[lesson.type].previewable;
 
   return (
@@ -222,6 +222,7 @@ function AddLesson({ courseId, sectionId, run, busy }: { courseId: string; secti
 
 function SectionCard({
   courseId,
+  lessonsBase,
   section,
   index,
   lessons,
@@ -229,6 +230,7 @@ function SectionCard({
   busy,
 }: {
   courseId: string;
+  lessonsBase: string;
   section: Section;
   index: number;
   lessons: Lesson[];
@@ -304,7 +306,7 @@ function SectionCard({
       <SortableContext items={lessons.map((l) => l.id)} strategy={verticalListSortingStrategy}>
         <ol ref={setZoneRef} className={cn("min-h-14 divide-y divide-line", isOver && lessons.length === 0 && "bg-brand-soft/50")}>
           {lessons.map((lesson) => (
-            <LessonRow key={lesson.id} courseId={courseId} lesson={lesson} run={run} busy={busy} />
+            <LessonRow key={lesson.id} courseId={courseId} lessonsBase={lessonsBase} lesson={lesson} run={run} busy={busy} />
           ))}
           {lessons.length === 0 && (
             <li className="px-4 py-4 text-sm text-ink-muted">No lessons yet. Add one below or drag a lesson here.</li>
@@ -336,7 +338,18 @@ function useProcessingPoller(lessons: Lesson[], onChange: () => void) {
   }, [key, onChange]);
 }
 
-export function CurriculumEditor({ courseId, sections, videoNotice }: { courseId: string; sections: Section[]; videoNotice?: ReactNode }) {
+export function CurriculumEditor({
+  courseId,
+  sections,
+  videoNotice,
+  lessonsBase,
+}: {
+  courseId: string;
+  sections: Section[];
+  videoNotice?: ReactNode;
+  /** Where lesson editor links point, e.g. /app/owner/courses/<id>/lessons. */
+  lessonsBase: string;
+}) {
   const router = useRouter();
   const [busy, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -501,7 +514,7 @@ export function CurriculumEditor({ courseId, sections, videoNotice }: { courseId
                 const section = sectionsById[sid];
                 if (!section) return null;
                 const lessons = (layout.items[sid] ?? []).map((id) => lessonsById[id]).filter(Boolean);
-                return <SectionCard key={sid} courseId={courseId} section={section} index={i} lessons={lessons} run={run} busy={busy} />;
+                return <SectionCard key={sid} courseId={courseId} lessonsBase={lessonsBase} section={section} index={i} lessons={lessons} run={run} busy={busy} />;
               })}
             </div>
           </SortableContext>

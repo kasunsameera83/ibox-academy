@@ -6,6 +6,7 @@ import { recordAudit } from "@/lib/audit";
 import { LIMITS, parseDesign, type CertificateDesign } from "@/lib/courses/certificate";
 import { requirePermission } from "@/lib/dal/session";
 import { createClient } from "@/lib/supabase/server";
+import { revalidateWorkspaces } from "@/lib/workspace";
 
 const schema = z.object({
   enabled: z.boolean(),
@@ -51,7 +52,7 @@ export async function saveCertificateDesignAction(
   }
 
   await recordAudit(supabase, user.id, "course.certificate_design", { type: "course", id: courseId }, { template: design.template, enabled: design.enabled });
-  revalidatePath(`/app/owner/courses/${courseId}`);
+  revalidateWorkspaces(`/courses/${courseId}`);
   revalidatePath("/certificates", "layout");
   return { ok: true };
 }
