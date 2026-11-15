@@ -2,9 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { z } from "zod";
 import { recordAudit } from "@/lib/audit";
 import { getCourseBySlug } from "@/lib/dal/courses";
+import { notifyBankRejected, notifyEnrolled, notifySlipReceived } from "@/lib/email/notify";
 import { bankDetailsComplete, getBankDetails } from "@/lib/dal/orders";
 import { requirePermission, requireRole, requireUser } from "@/lib/dal/session";
 import type { FormState } from "@/lib/forms";
@@ -75,7 +77,10 @@ export async function startCheckoutAction(_prev: CheckoutState, formData: FormDa
   }
   const order = (Array.isArray(data) ? data[0] : data) as { order_id: string; reference: string; status: string; amount_lkr: number };
 
-  if (order.status === "paid") redirect(`/checkout/order/${order.reference}`);
+  if (order.status === "paid") {
+    after(() => notifyEnrolled({ id: order.order_id }));
+    redirect(`/checkout/order/${order.reference}`);
+  }
   if (method === "bank_transfer") redirect(`/checkout/order/${order.reference}`);
 
   const [firstName, ...rest] = (user.fullName || user.email.split("@")[0]).split(" ");
@@ -91,6 +96,7 @@ export async function submitSlipAction(orderId: string, reference: string, path:
   const supabase = await createClient();
   const { error } = await supabase.rpc("submit_bank_slip", { p_order_id: orderId, p_path: path });
   if (error) return { ok: false, error: "The slip couldn't be attached to your order. Please try again." };
+  after(() => notifySlipReceived(orderId));
   revalidatePath(`/checkout/order/${reference}`);
   revalidateWorkspaces("/payments");
   return { ok: true };
@@ -121,6 +127,7 @@ export async function reviewBankTransferAction(formData: FormData) {
     const reason = error.code === "IBX01" ? "own" : "review";
     redirect(`${workspaceBase(user)}/payments?error=${reason}`);
   }
+  after(() => (decision === "approve" ? notifyEnrolled({ id: orderId }) : notifyBankRejected(orderId)));
   revalidateWorkspaces("/payments");
   revalidateWorkspaces("/orders");
   redirect(`${workspaceBase(user)}/payments?done=${decision}`);

@@ -2,8 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { z } from "zod";
 import { getCurrentUser, requirePermission, requireUser } from "@/lib/dal/session";
+import { notifyTicketReceived, notifyTicketReply } from "@/lib/email/notify";
 import { createClient } from "@/lib/supabase/server";
 import { revalidateWorkspaces } from "@/lib/workspace";
 
@@ -45,9 +47,11 @@ export async function createTicketAction(_prev: NewTicketState, form: FormData):
     const known = error.code === "54000" || error.code === "22023";
     return { fieldErrors: { form: [known ? `${error.message}.`.replace(/\.\.$/, ".") : "Your message couldn't be sent. Please try again."] }, values: raw };
   }
+  const newId = (data as { id: string }).id;
+  after(() => notifyTicketReceived(newId));
   revalidatePath("/app/student/help");
   revalidateWorkspaces("/support");
-  redirect(`/app/student/help/${(data as { id: string }).id}?sent=1`);
+  redirect(`/app/student/help/${newId}?sent=1`);
 }
 
 export async function replyToTicketAction(ticketId: string, body: string, internal: boolean): Promise<Result> {
@@ -63,6 +67,8 @@ export async function replyToTicketAction(ticketId: string, body: string, intern
     const known = ["22023", "54000"].includes(error.code ?? "");
     return { ok: false, error: known ? error.message : error.code === "42501" ? "You can't reply to this ticket." : "Your reply couldn't be sent. Please try again." };
   }
+  // Emails the learner only when this was a public reply from the team.
+  if (!internal) after(() => notifyTicketReply(ticketId));
   revalidatePath(`/app/student/help/${ticketId}`);
   revalidateWorkspaces(`/support/${ticketId}`);
   revalidateWorkspaces("/support");

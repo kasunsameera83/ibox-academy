@@ -1,4 +1,5 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { after, NextResponse, type NextRequest } from "next/server";
+import { notifyEnrolled } from "@/lib/email/notify";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isPayhereConfigured, verifyNotification } from "@/lib/payhere";
 
@@ -50,5 +51,7 @@ export async function POST(request: NextRequest) {
     console.error("payhere notify failed", error.code);
     return new NextResponse("Error", { status: 500 }); // PayHere will retry
   }
+  // Emails only if the order is now paid; sent once even if PayHere notifies again.
+  if (p.order_id) after(() => notifyEnrolled({ reference: p.order_id }));
   return new NextResponse("OK", { status: 200 });
 }

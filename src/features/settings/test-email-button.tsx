@@ -1,0 +1,20 @@
+"use client";
+
+import { useState, useTransition } from "react";
+import { Send } from "lucide-react";
+import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { sendTestEmailAction } from "./email-actions";
+
+export function TestEmailButton() {
+  const [pending, startTransition] = useTransition();
+  const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null);
+  return (
+    <div className="flex flex-col gap-3">
+      <Button variant="secondary" size="sm" className="w-fit" loading={pending} onClick={() => startTransition(async () => setResult(await sendTestEmailAction()))}>
+        <Send className="size-4" aria-hidden="true" /> Send me a test email
+      </Button>
+      {result && <Alert tone={result.ok ? "success" : "danger"}>{result.message}</Alert>}
+    </div>
+  );
+}

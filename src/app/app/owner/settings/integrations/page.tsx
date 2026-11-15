@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft, Clapperboard, CreditCard } from "lucide-react";
+import { ArrowLeft, Clapperboard, CreditCard, Mail } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { PageHeader } from "@/components/layouts/page-header";
 import { TestConnectionButton } from "@/features/settings/test-connection-button";
+import { TestEmailButton } from "@/features/settings/test-email-button";
+import { isEmailConfigured } from "@/lib/email/mailer";
 import { requireRole } from "@/lib/dal/session";
 import { videoIntegrationStatus } from "@/lib/integrations";
 
@@ -13,6 +15,9 @@ export const metadata: Metadata = { title: "Integrations" };
 export default async function IntegrationsPage() {
   await requireRole("owner");
   const video = videoIntegrationStatus();
+  const emailReady = isEmailConfigured();
+  const smtpHost = process.env.SMTP_HOST ?? "";
+  const fromAddress = process.env.EMAIL_FROM || process.env.SMTP_USER || "";
 
   return (
     <>
@@ -56,6 +61,51 @@ export default async function IntegrationsPage() {
                   <li>Open <span className="font-semibold text-ink">Security</span> and copy the token authentication key.</li>
                   <li>Ask whoever hosts the site to add them as the <code className="rounded bg-canvas px-1">BUNNY_STREAM_*</code> server settings (see <code className="rounded bg-canvas px-1">.env.example</code>), then restart it.</li>
                   <li>Come back here and choose <span className="font-semibold text-ink">Test connection</span>.</li>
+                </ol>
+              </div>
+            )}
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <div className="flex flex-wrap items-start gap-4">
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-control bg-brand-soft text-brand">
+              <Mail className="size-5" aria-hidden="true" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 className="text-lg font-bold text-ink">App emails</h2>
+                <StatusBadge status={emailReady ? "active" : "pending"} label={emailReady ? "Connected" : "Not connected"} />
+              </div>
+              <p className="text-sm text-ink-muted">
+                Welcome, payment received, bank transfer updates, support replies and certificates. Sign-in emails are sent by Supabase separately.
+              </p>
+            </div>
+          </div>
+
+          {emailReady && (
+            <dl className="mt-6 grid gap-x-6 gap-y-3 sm:grid-cols-2">
+              <div>
+                <dt className="text-xs font-semibold text-ink-muted">Mail server</dt>
+                <dd className="font-mono text-sm text-ink">{smtpHost}</dd>
+              </div>
+              <div>
+                <dt className="text-xs font-semibold text-ink-muted">Sent from</dt>
+                <dd className="break-all font-mono text-sm text-ink">{fromAddress}</dd>
+              </div>
+            </dl>
+          )}
+
+          <div className="mt-6 border-t border-line pt-5">
+            {emailReady ? (
+              <TestEmailButton />
+            ) : (
+              <div className="flex flex-col gap-3 text-sm text-ink-muted">
+                <p className="font-semibold text-ink">How to connect</p>
+                <ol className="list-decimal space-y-1.5 pl-5">
+                  <li>Use the same mailbox as Supabase: <span className="font-semibold text-ink">hello@iboxacademy.com</span> on Cloudmail.</li>
+                  <li>Add <code className="rounded bg-canvas px-1">SMTP_HOST</code>, <code className="rounded bg-canvas px-1">SMTP_PORT</code>, <code className="rounded bg-canvas px-1">SMTP_USER</code>, <code className="rounded bg-canvas px-1">SMTP_PASSWORD</code> and <code className="rounded bg-canvas px-1">EMAIL_FROM</code> as server settings (see <code className="rounded bg-canvas px-1">.env.example</code>), then redeploy.</li>
+                  <li>Come back here and choose <span className="font-semibold text-ink">Send me a test email</span>.</li>
                 </ol>
               </div>
             )}

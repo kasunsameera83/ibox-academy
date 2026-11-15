@@ -1,8 +1,10 @@
 "use server";
 
+import { after } from "next/server";
 import { z } from "zod";
 import { recordAudit } from "@/lib/audit";
 import { requirePermission } from "@/lib/dal/session";
+import { notifyNewCertificates, submissionStudent } from "@/lib/email/notify";
 import { createClient } from "@/lib/supabase/server";
 import { revalidateWorkspaces } from "@/lib/workspace";
 
@@ -24,6 +26,13 @@ export async function reviewAssignmentAction(input: { id: string; approve: boole
   if (error) return { ok: false, error: error.code === "22023" ? error.message : "The review couldn't be saved. Please try again." };
 
   await recordAudit(user.id, approve ? "assignment.approve" : "assignment.request_changes", { type: "assignment_submission", id });
+  // Approving the last assignment can complete the course and issue a certificate.
+  if (approve) {
+    after(async () => {
+      const studentId = await submissionStudent(id);
+      if (studentId) await notifyNewCertificates(studentId);
+    });
+  }
   revalidateWorkspaces("/assignments");
   revalidateWorkspaces(`/assignments/${id}`);
   return { ok: true };

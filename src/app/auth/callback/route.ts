@@ -1,5 +1,6 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { after, NextResponse, type NextRequest } from "next/server";
 import type { EmailOtpType } from "@supabase/supabase-js";
+import { notifyWelcome } from "@/lib/email/notify";
 import { createClient } from "@/lib/supabase/server";
 import { safeNextPath } from "@/lib/utils";
 
@@ -18,12 +19,23 @@ export async function GET(request: NextRequest) {
 
   const supabase = await createClient();
 
+  // Welcome email for brand-new learners (email sign-up or first Google sign-in).
+  const welcome = (userId: string | undefined) => {
+    if (userId && (code || type === "signup")) after(() => notifyWelcome(userId));
+  };
+
   if (code) {
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) return NextResponse.redirect(`${origin}${next}`);
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+    if (!error) {
+      welcome(data.user?.id);
+      return NextResponse.redirect(`${origin}${next}`);
+    }
   } else if (tokenHash && type && OTP_TYPES.includes(type)) {
-    const { error } = await supabase.auth.verifyOtp({ type, token_hash: tokenHash });
-    if (!error) return NextResponse.redirect(`${origin}${next}`);
+    const { data, error } = await supabase.auth.verifyOtp({ type, token_hash: tokenHash });
+    if (!error) {
+      welcome(data.user?.id);
+      return NextResponse.redirect(`${origin}${next}`);
+    }
   }
 
   return NextResponse.redirect(`${origin}/login?error=link_invalid`);

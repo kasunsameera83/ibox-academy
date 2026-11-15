@@ -1,6 +1,6 @@
 # Branded auth emails
 
-Six emails that Supabase sends for sign-in and account changes, styled for iBox Academy (yellow #FEC205 on near-black #131418).
+Emails that Supabase sends for sign-in and account changes, styled for iBox Academy (yellow #FEC205 on near-black #131418).
 
 ## Before you paste
 
@@ -21,6 +21,21 @@ Go to **Authentication → Emails → Templates**. For each one, set the subject
 | Change email address | Confirm your new email | `change-email.html` |
 | Reset password | Reset your password | `reset-password.html` |
 | Reauthentication | Your verification code | `reauthentication.html` |
+
+## Security alerts
+
+These tell people when something important changes on their account, so they can act if it wasn't them. They're **off by default**. In **Authentication → Emails**, open the security notifications, switch each one on, set the subject and paste the file.
+
+| Supabase notification | Subject | File |
+| --- | --- | --- |
+| Password changed | Your password was changed | `notify-password-changed.html` |
+| Email address changed | Your email address was changed | `notify-email-changed.html` |
+| Identity linked | A new sign-in method was added | `notify-identity-linked.html` |
+| Identity unlinked | A sign-in method was removed | `notify-identity-unlinked.html` |
+| MFA method added | Two-step sign-in was turned on | `notify-mfa-added.html` |
+| MFA method removed | Two-step sign-in was removed | `notify-mfa-removed.html` |
+
+Phone number changed isn't needed: iBox Academy doesn't use phone sign-in.
 
 ## How the links work
 

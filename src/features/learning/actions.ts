@@ -1,9 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { z } from "zod";
 import type { CourseProgress } from "@/lib/dal/learning";
 import { requireUser } from "@/lib/dal/session";
+import { notifyNewCertificates } from "@/lib/email/notify";
 import { createClient } from "@/lib/supabase/server";
 
 type Ok<T> = { ok: true } & T;
@@ -17,6 +19,11 @@ function refreshLearning(slug: string) {
   revalidatePath("/app/student/certificates");
 }
 
+/** Emails a newly issued certificate (sent once; later calls do nothing). */
+function emailCertificate(userId: string, progress: CourseProgress | null | undefined) {
+  if (progress?.certificate) after(() => notifyNewCertificates(userId));
+}
+
 /** Database errors meant for learners are raised with errcode 22023; everything else gets a generic message. */
 function friendly(error: { code?: string; message: string } | null, fallback: string) {
   if (error?.code === "22023") return error.message;
@@ -25,11 +32,12 @@ function friendly(error: { code?: string; message: string } | null, fallback: st
 }
 
 export async function setLessonCompleteAction(id: string, slug: string, complete: boolean): Promise<Ok<{ progress: CourseProgress }> | Fail> {
-  await requireUser();
+  const user = await requireUser();
   if (!lessonId.safeParse(id).success) return { ok: false, error: "Lesson not found." };
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("set_lesson_complete", { p_lesson_id: id, p_complete: complete });
   if (error) return { ok: false, error: friendly(error, "Your progress couldn't be saved. Please try again.") };
+  emailCertificate(user.id, data as CourseProgress);
   refreshLearning(slug);
   return { ok: true, progress: data as CourseProgress };
 }
@@ -47,13 +55,14 @@ export type QuizResult = {
 const answersSchema = z.record(z.string().uuid(), z.string().min(1).max(40)).refine((v) => Object.keys(v).length <= 200);
 
 export async function submitQuizAction(id: string, slug: string, answers: Record<string, string>): Promise<Ok<{ result: QuizResult }> | Fail> {
-  await requireUser();
+  const user = await requireUser();
   if (!lessonId.safeParse(id).success) return { ok: false, error: "Quiz not found." };
   const parsed = answersSchema.safeParse(answers);
   if (!parsed.success) return { ok: false, error: "Some answers couldn't be read. Please try again." };
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("submit_quiz", { p_lesson_id: id, p_answers: parsed.data });
   if (error) return { ok: false, error: friendly(error, "Your answers couldn't be checked. Please try again.") };
+  emailCertificate(user.id, (data as QuizResult).progress);
   refreshLearning(slug);
   return { ok: true, result: data as QuizResult };
 }
@@ -86,6 +95,7 @@ export async function submitAssignmentAction(
     p_keep_file: Boolean(keepFile && !filePath),
   });
   if (error) return { ok: false, error: friendly(error, "Your work couldn't be submitted. Please try again.") };
+  emailCertificate(user.id, data as CourseProgress);
   refreshLearning(slug);
   return { ok: true, progress: data as CourseProgress };
 }

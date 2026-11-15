@@ -5,7 +5,7 @@ Items marked **Blocker** should be done before real learners pay.
 
 ## 1. Database (Supabase)
 
-- [ ] **Blocker** Run every migration in `supabase/migrations/`, in order, up to `20261114160000_wishlist_support.sql` (README lists them).
+- [ ] **Blocker** Run every migration in `supabase/migrations/`, in order, up to `20261115100000_email_log.sql` (README lists them).
 - [ ] Open **Advisors → Security Advisor** in the Supabase dashboard and fix anything marked as an error.
 - [ ] Optional: run `supabase/tests/access_rules.sql` on a local or staging database. It runs 54 access checks for a visitor, a learner, staff and the Owner, prints PASS/FAIL, and rolls everything back. All 54 pass on the current migrations.
 - [ ] Backups: check which backups your plan includes, and download a backup before launch day.
@@ -13,7 +13,8 @@ Items marked **Blocker** should be done before real learners pay.
 ## 2. Sign-in (Supabase → Authentication)
 
 - [ ] **Blocker** URL configuration: Site URL `https://iboxacademy.com`; redirect URLs include `https://iboxacademy.com/**`.
-- [ ] **Blocker** Emails: the built-in Supabase email sender has a very low hourly limit and is meant for testing. Set up custom SMTP (for example Resend, Brevo or Amazon SES) before promoting the site, or sign-up and password-reset emails will stop arriving.
+- [ ] **Blocker** Emails: the built-in Supabase email sender has a very low hourly limit and is meant for testing. Set up custom SMTP (for example Resend, Brevo or Amazon SES) before promoting the site, or sign-up and password-reset emails will stop arriving. Paste the branded templates from `supabase/templates/` (see its README).
+- [ ] App emails (welcome, payment, bank transfer, support replies, certificates): add the `SMTP_*` and `EMAIL_FROM` settings in Vercel (see `.env.example`), redeploy, then check **Owner → Settings → Integrations → Email** shows connected and send a test.
 - [ ] Email confirmation is on for new sign-ups.
 - [ ] Password rules: minimum length 8 or more. Turn on leaked-password protection if your plan offers it.
 - [ ] Multi-factor (TOTP) is enabled. It's required for the Owner and all staff.
@@ -80,4 +81,4 @@ Use a fresh learner account and a staff account with limited permissions.
 - [ ] Watch Vercel → Logs for errors in the first days. Error pages show a **Reference** code that matches the log entry.
 - [ ] A free uptime monitor (for example UptimeRobot) pinging the homepage every 5 minutes.
 - [ ] Give staff only the permissions they need; review the list monthly.
-- [ ] Still to build: email templates once custom SMTP is set up, plus ticket attachments and saved replies.
+- [ ] Still to build: ticket attachments and saved replies.

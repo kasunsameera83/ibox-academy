@@ -325,7 +325,7 @@ function ContactForm({ s, set, ctx }: FormProps<"contact">) {
     <>
       <TextField label="Title" value={d.title} max={LIMITS.title} required disabled={off} onChange={(v) => set({ ...d, title: v })} />
       <AreaField label="Text" value={d.text} max={LIMITS.body} disabled={off} onChange={(v) => set({ ...d, text: v })} />
-      <p className="text-sm text-ink-muted">The details come from <strong className="text-ink">Menus &amp; footer → Contact details</strong>, so they stay the same everywhere.</p>
+      <p className="text-sm text-ink-muted">These switches only choose what to show. To add or change the email, numbers or address, open the <strong className="text-ink">Menus &amp; footer</strong> tab, fill in <strong className="text-ink">Contact details</strong> and publish it. A detail that&apos;s empty there won&apos;t appear here.</p>
       <Toggle label="Email" checked={d.showEmail} disabled={off} onChange={(v) => set({ ...d, showEmail: v })} />
       <Toggle label="WhatsApp" checked={d.showWhatsapp} disabled={off} onChange={(v) => set({ ...d, showWhatsapp: v })} />
       <Toggle label="Phone" checked={d.showPhone} disabled={off} onChange={(v) => set({ ...d, showPhone: v })} />
