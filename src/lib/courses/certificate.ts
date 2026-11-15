@@ -1,6 +1,8 @@
 /**
- * Certificate design, chosen per course in the course builder.
- * Stored as courses.certificate (jsonb). Missing values fall back to DEFAULT_DESIGN.
+ * Certificate design. The academy has a default (Settings → Certificate,
+ * stored in site_settings under DEFAULT_SETTING_KEY); each course uses it
+ * unless the course is customised in the course builder (courses.certificate).
+ * Missing values fall back to DEFAULT_DESIGN.
  */
 export type CertificateTemplate = "prestige" | "bold" | "classic" | "minimal";
 
@@ -85,4 +87,31 @@ export function parseDesign(raw: unknown): CertificateDesign {
 
 export function isHexColor(value: string) {
   return HEX.test(value);
+}
+
+/** site_settings key holding the academy-wide default design. */
+export const DEFAULT_SETTING_KEY = "certificate_default";
+/** Storage folder for the default design's signature images. */
+export const DEFAULT_SIGNATURE_DIR = "courses/default";
+
+function asObject(raw: unknown): Record<string, unknown> {
+  return raw && typeof raw === "object" && !Array.isArray(raw) ? (raw as Record<string, unknown>) : {};
+}
+
+/** True when a course follows the academy default (new courses do until customised). */
+export function usesDefault(courseRaw: unknown): boolean {
+  const r = asObject(courseRaw);
+  return r.useDefault === true || Object.keys(r).length === 0;
+}
+
+/** True when the course has its own saved design (kept even while it follows the default). */
+export function hasCustomDesign(courseRaw: unknown): boolean {
+  return Object.keys(asObject(courseRaw)).some((k) => k !== "useDefault" && k !== "enabled");
+}
+
+/** The design a course's certificates actually show. Whether to issue one is always the course's choice. */
+export function effectiveDesign(courseRaw: unknown, defaultRaw: unknown): CertificateDesign {
+  if (!usesDefault(courseRaw)) return parseDesign(courseRaw);
+  const enabled = asObject(courseRaw).enabled;
+  return { ...parseDesign(defaultRaw), enabled: typeof enabled === "boolean" ? enabled : true };
 }

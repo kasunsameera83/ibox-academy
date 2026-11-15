@@ -34,6 +34,7 @@ const ACTIONS: Record<string, string> = {
   "enrolment.grant": "Gave a learner access to a course",
   "enrolment.update": "Changed a learner's course access",
   "settings.bank_details_updated": "Changed the bank transfer details",
+  "settings.certificate_default": "Changed the default certificate",
   "report.export_orders": "Exported the orders report",
   "course.create": "Created a course",
   "course.delete": "Deleted a course",

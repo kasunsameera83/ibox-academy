@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Check, ImagePlus, Trash2 } from "lucide-react";
 import { brand } from "@/brand";
@@ -8,19 +9,41 @@ import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { COLOR_PRESETS, DEFAULT_DESIGN, LIMITS, TEMPLATES, isHexColor, type CertificateDesign } from "@/lib/courses/certificate";
+import { COLOR_PRESETS, DEFAULT_DESIGN, DEFAULT_SIGNATURE_DIR, LIMITS, TEMPLATES, isHexColor, type CertificateDesign } from "@/lib/courses/certificate";
 import { mediaUrl } from "@/lib/courses/format";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
-import { saveCertificateDesignAction } from "./actions";
+import { saveCertificateDesignAction, saveDefaultCertificateAction } from "./actions";
 import { CertificateArt } from "./certificate-art";
 
 const SIGNATURE_TYPES: Record<string, string> = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp" };
 
-export function CertificateDesigner({ courseId, courseTitle, initial }: { courseId: string; courseTitle: string; initial: CertificateDesign }) {
+type Props =
+  | {
+      /** A course: follows the academy default unless customised. */
+      mode: "course";
+      courseId: string;
+      courseTitle: string;
+      initial: CertificateDesign;
+      initialUseDefault: boolean;
+      /** The course has its own saved design (to restore when switching back). */
+      hasCustom: boolean;
+      defaultDesign: CertificateDesign;
+      /** Owner: link to edit the default in Settings. */
+      settingsHref: string | null;
+    }
+  | { mode: "default"; initial: CertificateDesign };
+
+export function CertificateDesigner(props: Props) {
+  const { initial } = props;
+  const isCourse = props.mode === "course";
+  const courseTitle = isCourse ? props.courseTitle : "Your course title appears here";
   const router = useRouter();
   const [design, setDesign] = useState<CertificateDesign>(initial);
   const [saved, setSaved] = useState<CertificateDesign>(initial);
+  const [useDefault, setUseDefault] = useState(isCourse ? props.initialUseDefault : false);
+  const [savedUseDefault, setSavedUseDefault] = useState(useDefault);
+  const [customStarted, setCustomStarted] = useState(isCourse ? props.hasCustom : true);
   const [sampleName, setSampleName] = useState("Amaya Perera");
   const [customColor, setCustomColor] = useState(initial.color && !COLOR_PRESETS.some((c) => c.value === initial.color) ? initial.color : "#7c3aed");
   const [error, setError] = useState<string | null>(null);
@@ -28,7 +51,19 @@ export function CertificateDesigner({ courseId, courseTitle, initial }: { course
   const [uploading, setUploading] = useState<SignatureSlot | null>(null);
   const [pending, start] = useTransition();
 
-  const dirty = JSON.stringify(design) !== JSON.stringify(saved);
+  const dirty = JSON.stringify(design) !== JSON.stringify(saved) || useDefault !== savedUseDefault;
+  const showControls = !isCourse || !useDefault;
+  const preview: CertificateDesign = isCourse && useDefault ? { ...props.defaultDesign, enabled: design.enabled } : design;
+
+  function chooseDefault(next: boolean) {
+    setNotice(null);
+    setUseDefault(next);
+    // First time customising: start from the academy default rather than a blank design.
+    if (!next && isCourse && !customStarted) {
+      setDesign((d) => ({ ...props.defaultDesign, enabled: d.enabled }));
+      setCustomStarted(true);
+    }
+  }
   const set = <K extends keyof CertificateDesign>(key: K, value: CertificateDesign[K]) => {
     setNotice(null);
     setDesign((d) => ({ ...d, [key]: value }));
@@ -40,7 +75,8 @@ export function CertificateDesigner({ courseId, courseTitle, initial }: { course
     if (!ext) return setError("Use a PNG (best with a transparent background), JPG or WebP image.");
     if (file.size > 2 * 1024 * 1024) return setError("Use an image under 2 MB.");
     setUploading(slot);
-    const path = `courses/${courseId}/signature-${crypto.randomUUID()}.${ext}`;
+    const folder = props.mode === "course" ? `courses/${props.courseId}` : DEFAULT_SIGNATURE_DIR;
+    const path = `${folder}/signature-${crypto.randomUUID()}.${ext}`;
     const { error: uploadError } = await createClient()
       .storage.from("course-media")
       .upload(path, file, { contentType: file.type, cacheControl: "31536000", upsert: false });
@@ -52,26 +88,68 @@ export function CertificateDesigner({ courseId, courseTitle, initial }: { course
   function save() {
     setError(null);
     start(async () => {
-      const res = await saveCertificateDesignAction(courseId, design);
+      const res = props.mode === "course" ? await saveCertificateDesignAction(props.courseId, design, useDefault) : await saveDefaultCertificateAction(design);
       if (!res.ok) return setError(res.error);
       setSaved(design);
-      setNotice("Certificate design saved. Certificates already issued for this course now use it too.");
+      setSavedUseDefault(useDefault);
+      setNotice(
+        props.mode === "default"
+          ? "Default certificate saved. Every course that uses it, and certificates already issued for them, now show it."
+          : "Certificate saved. Certificates already issued for this course now use it too.",
+      );
       router.refresh();
     });
   }
 
   return (
     <div className="flex flex-col gap-8">
-      <Checkbox
-        name="enabled"
-        label="Give learners a certificate when they finish this course"
-        hint="Issued when every lesson is complete and every assignment is approved."
-        checked={design.enabled}
-        onChange={(e) => set("enabled", e.target.checked)}
-      />
+      {isCourse && (
+        <Checkbox
+          name="enabled"
+          label="Give learners a certificate when they finish this course"
+          hint="Issued when every lesson is complete and every assignment is approved."
+          checked={design.enabled}
+          onChange={(e) => set("enabled", e.target.checked)}
+        />
+      )}
+
+      {isCourse && (
+        <fieldset className={cn(!design.enabled && "pointer-events-none opacity-50")}>
+          <legend className="mb-2 text-sm font-semibold text-ink">Design</legend>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {[
+              { value: true, label: "Academy default", text: "Same look, signatures and wording as your other courses. Change it once in Settings." },
+              { value: false, label: "Custom for this course", text: "A different look or signer just for this course." },
+            ].map((o) => (
+              <label
+                key={o.label}
+                className={cn("flex cursor-pointer items-start gap-3 rounded-control border px-3 py-2.5", useDefault === o.value ? "border-brand bg-brand-soft" : "border-line hover:bg-canvas")}
+              >
+                <input type="radio" name="useDefault" checked={useDefault === o.value} onChange={() => chooseDefault(o.value)} className="mt-1 accent-[var(--color-brand)]" />
+                <span>
+                  <span className="block text-sm font-semibold text-ink">{o.label}</span>
+                  <span className="block text-xs text-ink-muted">{o.text}</span>
+                </span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      )}
 
       <div className={cn("grid gap-8 xl:grid-cols-[minmax(0,340px)_minmax(0,1fr)]", !design.enabled && "pointer-events-none opacity-50")} aria-disabled={!design.enabled}>
         {/* Controls */}
+        {!showControls && props.mode === "course" ? (
+          <div className="flex flex-col gap-3 rounded-card border border-line bg-canvas p-5 text-sm text-ink-muted">
+            <p className="font-semibold text-ink">This course uses the academy default certificate.</p>
+            <p>Its look, signatures and wording are set once for every course, so they stay consistent.</p>
+            {props.settingsHref ? (
+              <Link href={props.settingsHref} className="font-semibold text-brand hover:underline">Edit the default certificate in Settings</Link>
+            ) : (
+              <p>Only the Owner can change the default.</p>
+            )}
+            {!props.defaultDesign.signerName && <p className="text-warning-ink">No signature has been added to the default yet.</p>}
+          </div>
+        ) : (
         <div className="flex flex-col gap-6">
           <fieldset>
             <legend className="mb-2 text-sm font-semibold text-ink">Look</legend>
@@ -194,6 +272,7 @@ export function CertificateDesigner({ courseId, courseTitle, initial }: { course
             />
           )}
         </div>
+        )}
 
         {/* Live preview */}
         <div className="flex min-w-0 flex-col gap-3 xl:sticky xl:top-24 xl:self-start">
@@ -211,27 +290,32 @@ export function CertificateDesigner({ courseId, courseTitle, initial }: { course
           </div>
           <div className="rounded-card bg-canvas p-3 sm:p-5">
             <CertificateArt
-              design={design}
+              design={preview}
               studentName={sampleName || "Learner name"}
               courseTitle={courseTitle}
               issuedAt={new Date()}
               code="IBX-PREV-IEW0"
-              signatureUrl={mediaUrl(design.signaturePath)}
-              signature2Url={mediaUrl(design.signature2Path)}
-              className={cn("shadow-float", design.template === "bold" && "rounded-[14px]")}
+              signatureUrl={mediaUrl(preview.signaturePath)}
+              signature2Url={mediaUrl(preview.signature2Path)}
+              className={cn("shadow-float", preview.template === "bold" && "rounded-[14px]")}
             />
           </div>
-          <p className="text-xs text-ink-muted">Learners see exactly this, with their own name, the issue date and a unique ID anyone can verify.</p>
+          <p className="text-xs text-ink-muted">
+            {isCourse ? "Learners see exactly this, with their own name, the issue date and a unique ID anyone can verify." : "Each course shows its own title here. Learners see their own name, the issue date and a unique ID anyone can verify."}
+          </p>
         </div>
       </div>
 
       {error && <Alert tone="danger">{error}</Alert>}
       {notice && !dirty && <Alert tone="success">{notice}</Alert>}
       <div className="sticky bottom-4 z-10 flex flex-wrap items-center gap-3 rounded-card border border-line bg-surface p-3 shadow-float">
-        <Button onClick={save} loading={pending} disabled={!dirty || uploading !== null} className="rounded-full">Save certificate</Button>
+        <Button onClick={save} loading={pending} disabled={!dirty || uploading !== null} className="rounded-full">{isCourse ? "Save certificate" : "Save default certificate"}</Button>
         <span className="text-sm text-ink-muted" aria-live="polite">{dirty ? "You have unsaved changes." : "All changes saved."}</span>
         {dirty && (
-          <Button variant="tertiary" size="sm" onClick={() => setDesign(saved)} disabled={pending} className="ml-auto rounded-full">Discard changes</Button>
+          <Button variant="tertiary" size="sm" onClick={() => {
+              setDesign(saved);
+              setUseDefault(savedUseDefault);
+            }} disabled={pending} className="ml-auto rounded-full">Discard changes</Button>
         )}
       </div>
     </div>

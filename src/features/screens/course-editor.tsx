@@ -14,10 +14,11 @@ import { SeoForm } from "@/features/courses/components/seo-form";
 import { ThumbnailUploader } from "@/features/courses/components/thumbnail-uploader";
 import { VideoHostingNotice } from "@/features/courses/components/video-hosting-notice";
 import { isBunnyConfigured } from "@/lib/bunny";
-import { parseDesign } from "@/lib/courses/certificate";
+import { hasCustomDesign, parseDesign, usesDefault } from "@/lib/courses/certificate";
 import { publishChecklist } from "@/lib/courses/checklist";
 import { formatDuration, mediaUrl } from "@/lib/courses/format";
 import { curriculumStats } from "@/lib/courses/lessons";
+import { getDefaultCertificate } from "@/lib/dal/certificates";
 import { getCourseForEditor, listCategories } from "@/lib/dal/courses";
 import { hasPermission, type SessionUser } from "@/lib/dal/session";
 import { cn, param, type SearchParams } from "@/lib/utils";
@@ -41,7 +42,7 @@ export async function CourseEditorScreen({ params, searchParams, user, base }: {
   const requested = param(sp.step) as StepKey | undefined;
   const step: StepKey = STEPS.some((s) => s.key === requested) ? (requested as StepKey) : "overview";
 
-  const [course, categories] = await Promise.all([getCourseForEditor(id), listCategories()]);
+  const [course, categories, defaultCertificate] = await Promise.all([getCourseForEditor(id), listCategories(), getDefaultCertificate()]);
   if (!course) notFound();
 
   const checklist = publishChecklist(course);
@@ -118,7 +119,18 @@ export async function CourseEditorScreen({ params, searchParams, user, base }: {
             />
           )}
           {step === "pricing" && <PricingForm course={course} />}
-          {step === "certificate" && <CertificateDesigner courseId={course.id} courseTitle={course.title} initial={parseDesign(course.certificate)} />}
+          {step === "certificate" && (
+            <CertificateDesigner
+              mode="course"
+              courseId={course.id}
+              courseTitle={course.title}
+              initial={parseDesign(course.certificate)}
+              initialUseDefault={usesDefault(course.certificate)}
+              hasCustom={hasCustomDesign(course.certificate)}
+              defaultDesign={defaultCertificate.design}
+              settingsHref={user.role === "owner" ? "/app/owner/settings/certificate" : null}
+            />
+          )}
           {step === "seo" && <SeoForm course={course} />}
           {step === "publish" && (
             <PublishPanel

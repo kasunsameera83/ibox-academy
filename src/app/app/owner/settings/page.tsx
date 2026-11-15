@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ChevronRight, CreditCard, Globe, Mail, Plug } from "lucide-react";
+import { Award, ChevronRight, CreditCard, Globe, Mail, Plug } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/layouts/page-header";
 import { requireRole } from "@/lib/dal/session";
@@ -10,6 +10,7 @@ export const metadata: Metadata = { title: "Settings" };
 const SECTIONS = [
   { href: "/app/owner/settings/integrations", icon: Plug, title: "Integrations", text: "Video hosting and other connected services.", live: true },
   { href: "/app/owner/settings/payments", icon: CreditCard, title: "Payments", text: "PayHere and bank transfer details.", live: true },
+  { href: "/app/owner/settings/certificate", icon: Award, title: "Certificate", text: "The default certificate design, signatures and wording for every course.", live: true },
   { href: null, icon: Globe, title: "Platform identity", text: "Brand, locale, currency and contact details.", live: false, phase: 4 },
   { href: null, icon: Mail, title: "Email templates", text: "Receipts, reminders and account emails.", live: false, phase: 4 },
 ];
