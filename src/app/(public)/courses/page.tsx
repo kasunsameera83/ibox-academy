@@ -5,6 +5,8 @@ import { ButtonLink } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { CourseCard } from "@/features/courses/components/course-card";
 import { listCategories, listPublishedCourses, type CatalogueFilters } from "@/lib/dal/courses";
+import { getCurrentUser } from "@/lib/dal/session";
+import { getWishlistIds } from "@/lib/dal/wishlist";
 import { LEVEL_LABELS, type CourseLevel } from "@/lib/courses/types";
 import { cn, param, type SearchParams } from "@/lib/utils";
 
@@ -36,9 +38,11 @@ export default async function ExplorePage({ searchParams }: { searchParams: Sear
   const sortParam = param(sp.sort);
   const sort = SORTS.some((s) => s.value === sortParam) ? (sortParam as CatalogueFilters["sort"]) : "newest";
 
-  const [categories, courses] = await Promise.all([
+  const [categories, courses, user, saved] = await Promise.all([
     listCategories({ visibleOnly: true }),
     listPublishedCourses({ q, category, level, sort }),
+    getCurrentUser(),
+    getWishlistIds(),
   ]);
   const current = { q: q || undefined, category, level, sort: sort === "newest" ? undefined : sort };
   const activeCategory = categories.find((c) => c.slug === category);
@@ -140,7 +144,7 @@ export default async function ExplorePage({ searchParams }: { searchParams: Sear
       ) : (
         <ul className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {courses.map((c) => (
-            <li key={c.id} className="flex"><div className="w-full"><CourseCard course={c} /></div></li>
+            <li key={c.id} className="flex"><div className="w-full"><CourseCard course={c} wishlist={{ saved: saved.has(c.id), signedIn: Boolean(user) }} /></div></li>
           ))}
         </ul>
       )}

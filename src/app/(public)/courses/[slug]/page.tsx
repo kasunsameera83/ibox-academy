@@ -17,6 +17,8 @@ import { LANGUAGE_LABELS, LEVEL_LABELS } from "@/lib/courses/types";
 import { getCourseBySlug } from "@/lib/dal/courses";
 import { hasActiveEnrolment } from "@/lib/dal/orders";
 import { getCurrentUser } from "@/lib/dal/session";
+import { getWishlistIds } from "@/lib/dal/wishlist";
+import { WishlistButton } from "@/features/wishlist/wishlist-button";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -45,7 +47,10 @@ export default async function CourseDetailPage({ params }: Props) {
   if (!course) notFound();
 
   const user = await getCurrentUser();
-  const enrolled = user ? await hasActiveEnrolment(user.id, course.id) : false;
+  const [enrolled, savedIds] = await Promise.all([
+    user ? hasActiveEnrolment(user.id, course.id) : Promise.resolve(false),
+    getWishlistIds(),
+  ]);
   const ctaHref = enrolled ? `/learn/${course.slug}` : `/checkout/${course.slug}`;
   const stats = curriculumStats(course.sections);
   const price = effectivePrice(course);
@@ -209,7 +214,11 @@ export default async function CourseDetailPage({ params }: Props) {
               <ButtonLink href={ctaHref} size="lg" fullWidth className="rounded-full">
                 {enrolled ? "Go to course" : price === 0 ? "Enrol for free" : "Buy now"}
               </ButtonLink>
-              {enrolled && <p className="text-center text-sm font-semibold text-success-ink">You're enrolled in this course.</p>}
+              {enrolled ? (
+                <p className="text-center text-sm font-semibold text-success-ink">You're enrolled in this course.</p>
+              ) : (
+                <WishlistButton variant="full" courseId={course.id} courseTitle={course.title} courseSlug={course.slug} saved={savedIds.has(course.id)} signedIn={Boolean(user)} />
+              )}
               <ul className="flex flex-col gap-2 text-sm text-ink-muted">
                 <li className="flex items-center gap-2"><CheckCircle2 className="size-4 text-success" aria-hidden="true" /> {accessLabel(course.access_type, course.access_days)}</li>
                 <li className="flex items-center gap-2"><CheckCircle2 className="size-4 text-success" aria-hidden="true" /> Pay by card or bank transfer, in LKR</li>

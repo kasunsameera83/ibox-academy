@@ -39,6 +39,13 @@ const STATUS: Record<string, { label: string; tone: Tone }> = {
   active: { label: "Active", tone: "success" },
   suspended: { label: "Suspended", tone: "danger" },
   deactivated: { label: "Deactivated", tone: "neutral" },
+  // Support tickets
+  new: { label: "New", tone: "brand" },
+  open: { label: "Open", tone: "brand" },
+  waiting_learner: { label: "Waiting for learner", tone: "warning" },
+  waiting_internal: { label: "Waiting internally", tone: "warning" },
+  resolved: { label: "Solved", tone: "success" },
+  closed: { label: "Closed", tone: "neutral" },
 };
 
 export function StatusBadge({ status, label, tone, className }: { status: string; label?: string; tone?: Tone; className?: string }) {

@@ -11,6 +11,8 @@ import { RichText } from "@/lib/cms/rich-text";
 import { imageIdsIn, safeHref, type PageContent, type SectionOf, type SiteSettings } from "@/lib/cms/schema";
 import { getMediaMap, type MediaAsset } from "@/lib/dal/cms";
 import { listCategories, listPublishedCourses, type CatalogueCourse } from "@/lib/dal/courses";
+import { getCurrentUser } from "@/lib/dal/session";
+import { getWishlistIds } from "@/lib/dal/wishlist";
 import { cn } from "@/lib/utils";
 
 const ICONS: Record<string, LucideIcon> = {
@@ -194,7 +196,7 @@ function Topics({ s, items }: { s: SectionOf<"topics">; items: { label: string; 
 
 // ------------------------------------------------------------------ courses
 
-function Courses({ s, courses }: { s: SectionOf<"courses">; courses: CatalogueCourse[] }) {
+function Courses({ s, courses, saved, signedIn }: { s: SectionOf<"courses">; courses: CatalogueCourse[]; saved: Set<string>; signedIn: boolean }) {
   if (courses.length === 0) return null;
   return (
     <section id={s.id} aria-labelledby={`${s.id}-title`} className="mx-auto max-w-[1280px] scroll-mt-24 px-4 pt-20 sm:px-6 lg:px-8 lg:pt-24">
@@ -208,7 +210,7 @@ function Courses({ s, courses }: { s: SectionOf<"courses">; courses: CatalogueCo
       </div>
       <ul className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {courses.map((course) => (
-          <li key={course.id}><CourseCard course={course} /></li>
+          <li key={course.id}><CourseCard course={course} wishlist={{ saved: saved.has(course.id), signedIn }} /></li>
         ))}
       </ul>
     </section>
@@ -435,7 +437,7 @@ export async function PageSections({ content, site, fallbackTitle }: { content: 
   const needsCategories = sections.some((s) => s.type === "topics" && s.data.source === "categories");
   const courseSections = sections.filter((s): s is SectionOf<"courses"> => s.type === "courses");
 
-  const [media, categories, courseLists] = await Promise.all([
+  const [media, categories, courseLists, user, saved] = await Promise.all([
     getMediaMap(imageIdsIn({ ...content, sections })),
     needsCategories ? listCategories({ visibleOnly: true }) : Promise.resolve([]),
     Promise.all(
@@ -448,6 +450,8 @@ export async function PageSections({ content, site, fallbackTitle }: { content: 
         return listPublishedCourses({ sort: "newest" }, s.data.limit);
       }),
     ),
+    courseSections.length ? getCurrentUser() : Promise.resolve(null),
+    courseSections.length ? getWishlistIds() : Promise.resolve(new Set<string>()),
   ]);
   const coursesFor = new Map(courseSections.map((s, i) => [s.id, courseLists[i]]));
   const hasH1 = sections[0]?.type === "intro" || sections.some((s) => s.type === "hero");
@@ -467,7 +471,7 @@ export async function PageSections({ content, site, fallbackTitle }: { content: 
             return <Topics key={s.id} s={s} items={items} />;
           }
           case "courses":
-            return <Courses key={s.id} s={s} courses={coursesFor.get(s.id) ?? []} />;
+            return <Courses key={s.id} s={s} courses={coursesFor.get(s.id) ?? []} saved={saved} signedIn={Boolean(user)} />;
           case "steps":
             return <Steps key={s.id} s={s} />;
           case "features":

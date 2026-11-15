@@ -115,7 +115,7 @@ export default async function OrderPage({ params, searchParams }: { params: Prom
         </p>
         <div className="flex flex-wrap gap-2">
           {order.status !== "refunded" && <ButtonLink href={retryHref} className="rounded-full">Try again</ButtonLink>}
-          <ButtonLink href="/help" variant="secondary" className="rounded-full">Contact support</ButtonLink>
+          <ButtonLink href={`/app/student/help/new?category=payment&order=${order.id}`} variant="secondary" className="rounded-full">Contact support</ButtonLink>
         </div>
       </Panel>
     );

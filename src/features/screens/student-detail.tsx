@@ -11,6 +11,7 @@ import { formatPrice } from "@/lib/courses/format";
 import { METHOD_LABELS } from "@/lib/dal/orders";
 import { getStudentDetail, listCoursesForAccess } from "@/lib/dal/people";
 import { hasPermission, type SessionUser } from "@/lib/dal/session";
+import { CATEGORY_LABELS, listTicketsForLearner } from "@/lib/dal/support";
 
 
 const dateFormat = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Colombo" });
@@ -19,7 +20,12 @@ const dateTimeFormat = new Intl.DateTimeFormat("en-GB", { day: "numeric", month:
 export async function StudentDetailScreen({ params, user, base }: { params: Promise<{ id: string }>; user: SessionUser; base: string }) {
   const viewer = user;
   const { id } = await params;
-  const [detail, courses] = await Promise.all([getStudentDetail(id), listCoursesForAccess()]);
+  const showTickets = hasPermission(user, "tickets.read");
+  const [detail, courses, tickets] = await Promise.all([
+    getStudentDetail(id),
+    listCoursesForAccess(),
+    showTickets ? listTicketsForLearner(id) : Promise.resolve([]),
+  ]);
   if (!detail) notFound();
   const { profile, enrolments, orders, submissions } = detail;
   const name = profile.full_name || profile.email || "Learner";
@@ -160,6 +166,27 @@ export async function StudentDetailScreen({ params, user, base }: { params: Prom
                   </li>
                 ))}
               </ul>
+            </Card>
+          )}
+
+          {showTickets && (
+            <Card>
+              <CardHeader title="Support history" description={tickets.length ? undefined : "No support requests."} />
+              {tickets.length > 0 && (
+                <ul className="divide-y divide-line">
+                  {tickets.map((t) => (
+                    <li key={t.id}>
+                      <Link href={`${base}/support/${t.id}`} className="flex items-center gap-3 px-5 py-3 hover:bg-canvas">
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-sm font-medium text-ink">{t.subject}</span>
+                          <span className="block truncate text-xs text-ink-muted">{t.reference} · {CATEGORY_LABELS[t.category]} · {dateFormat.format(new Date(t.created_at))}</span>
+                        </span>
+                        <StatusBadge status={t.status} />
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </Card>
           )}
         </div>

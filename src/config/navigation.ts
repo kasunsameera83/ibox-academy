@@ -21,10 +21,10 @@ export const studentNav: NavItem[] = [
   { label: "Overview", href: "/app/student", icon: "home" },
   { label: "My Learning", href: "/app/student/learning", icon: "book" },
   { label: "Explore", href: "/courses", icon: "compass" },
-  { label: "Wishlist", href: "/app/student/wishlist", icon: "heart", phase: 3, description: "Courses you saved for later." },
+  { label: "Wishlist", href: "/app/student/wishlist", icon: "heart" },
   { label: "Certificates", href: "/app/student/certificates", icon: "award" },
   { label: "Payments", href: "/app/student/payments", icon: "receipt", phase: 3, description: "Orders, receipts, payment status and refund requests." },
-  { label: "Help", href: "/app/student/help", icon: "help", phase: 4, description: "Search help articles and contact support." },
+  { label: "Help", href: "/app/student/help", icon: "help" },
   { label: "Settings", href: "/app/student/settings", icon: "settings", phase: 1, description: "Profile, password, sessions and preferences." },
 ];
 
@@ -47,7 +47,7 @@ export const ownerNav: NavItem[] = [
   { label: "Orders", href: "/app/owner/orders", icon: "cart", phase: 3, description: "Order search, details and status timeline." },
   { label: "Payments", href: "/app/owner/payments", icon: "wallet", phase: 3, description: "PayHere reconciliation, bank transfer verification and refunds." },
   { label: "Promotions", href: "/app/owner/promotions", icon: "tag" },
-  { label: "Support", href: "/app/owner/support", icon: "life-buoy", phase: 4, description: "Ticket queue, assignment and internal notes." },
+  { label: "Support", href: "/app/owner/support", icon: "life-buoy" },
   { label: "Reports", href: "/app/owner/reports", icon: "chart" },
   { label: "Security", href: "/app/owner/security", icon: "lock", phase: 4, description: "Login events, role changes, audit log and sessions." },
   { label: "Settings", href: "/app/owner/settings", icon: "settings", phase: 4, description: "Platform identity, locale, email templates and payment settings." },
@@ -62,7 +62,7 @@ export const staffNav: NavItem[] = [
   { label: "Website", href: "/app/staff/website", icon: "globe", permission: "cms.read" },
   { label: "Orders", href: "/app/staff/orders", icon: "cart", permission: "orders.read" },
   { label: "Payments", href: "/app/staff/payments", icon: "wallet", permission: "payments.read" },
-  { label: "Support", href: "/app/staff/support", icon: "inbox", permission: "tickets.read", phase: 5, description: "Ticket queue and replies." },
+  { label: "Support", href: "/app/staff/support", icon: "inbox", permission: "tickets.read" },
   { label: "Reports", href: "/app/staff/reports", icon: "chart", permission: "reports.read" },
   { label: "Settings", href: "/app/staff/settings", icon: "settings", description: "Profile, password, two-step verification and sessions." },
 ];
