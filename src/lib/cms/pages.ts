@@ -148,9 +148,7 @@ export const PAGE_DEFS: Record<string, PageDef> = {
           enabled: true,
           data: {
             title: "",
-            body: `[Have these terms checked by someone qualified before you publish.]
-
-## Who we are
+            body: `## Who we are
 ${brand.name} is an online learning platform based in Sri Lanka. Contact us at hello@iboxacademy.com.
 
 ## Your account
@@ -241,9 +239,7 @@ If we remove a course you paid for before you could finish it, we'll refund you 
           enabled: true,
           data: {
             title: "",
-            body: `[Have this checked by someone qualified before you publish.]
-
-## What we collect
+            body: `## What we collect
 - **Account details:** your name, email address and password (stored securely; we can't see it).
 - **Learning activity:** courses you're enrolled in, lessons completed, quiz answers and assignment files.
 - **Payments:** order details and, for bank transfers, the slip you upload. Card details are handled by PayHere; we never see or store your card number.

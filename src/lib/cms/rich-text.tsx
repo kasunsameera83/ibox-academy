@@ -46,8 +46,30 @@ function withBreaks(lines: string[], keyBase: string): ReactNode[] {
   return lines.flatMap((line, i) => (i === 0 ? inline(line, `${keyBase}-${i}`) : [<br key={`${keyBase}-br-${i}`} />, ...inline(line, `${keyBase}-${i}`)]));
 }
 
+const HEADING = /^#{2,3} /;
+
+/** A heading line always stands alone, even without a blank line after it. */
+function splitHeadings(lines: string[]): string[][] {
+  const out: string[][] = [];
+  let run: string[] = [];
+  for (const line of lines) {
+    if (HEADING.test(line)) {
+      if (run.length) out.push(run);
+      out.push([line]);
+      run = [];
+    } else run.push(line);
+  }
+  if (run.length) out.push(run);
+  return out;
+}
+
 export function RichText({ text }: { text: string }) {
-  const blocks = text.replace(/\r\n?/g, "\n").split(/\n\s*\n/).map((b) => b.split("\n").map((l) => l.trimEnd())).filter((b) => b.some(Boolean));
+  const blocks = text
+    .replace(/\r\n?/g, "\n")
+    .split(/\n\s*\n/)
+    .map((b) => b.split("\n").map((l) => l.trimEnd()))
+    .flatMap(splitHeadings)
+    .filter((b) => b.some(Boolean));
   return (
     <div className="flex flex-col gap-4 text-[17px] leading-relaxed text-ink-muted">
       {blocks.map((lines, b) => {
