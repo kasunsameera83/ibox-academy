@@ -50,7 +50,7 @@ export const ownerNav: NavItem[] = [
   { label: "Support", href: "/app/owner/support", icon: "life-buoy" },
   { label: "Reports", href: "/app/owner/reports", icon: "chart" },
   { label: "Security", href: "/app/owner/security", icon: "lock" },
-  { label: "Settings", href: "/app/owner/settings", icon: "settings", phase: 4, description: "Platform identity, locale, email templates and payment settings." },
+  { label: "Settings", href: "/app/owner/settings", icon: "settings" },
   { label: "My account", href: "/app/owner/account", icon: "user" },
 ];
 

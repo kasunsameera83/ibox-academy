@@ -8,23 +8,23 @@ import { requireRole } from "@/lib/dal/session";
 export const metadata: Metadata = { title: "Settings" };
 
 const SECTIONS = [
-  { href: "/app/owner/settings/integrations", icon: Plug, title: "Integrations", text: "Video hosting and other connected services.", live: true },
-  { href: "/app/owner/settings/payments", icon: CreditCard, title: "Payments", text: "PayHere and bank transfer details.", live: true },
-  { href: "/app/owner/settings/certificate", icon: Award, title: "Certificate", text: "The default certificate design, signatures and wording for every course.", live: true },
-  { href: null, icon: Globe, title: "Platform identity", text: "Brand, locale, currency and contact details.", live: false, phase: 4 },
-  { href: null, icon: Mail, title: "Email templates", text: "Receipts, reminders and account emails.", live: false, phase: 4 },
+  { href: "/app/owner/website?page=site", icon: Globe, title: "Contact details & footer", text: "Email, WhatsApp, phone, address, social links, menus and footer. Edited in Website → Menus & footer." },
+  { href: "/app/owner/settings/emails", icon: Mail, title: "Emails", text: "Which emails the academy sends and when, and a test email." },
+  { href: "/app/owner/settings/certificate", icon: Award, title: "Certificate", text: "The default certificate design, signatures and wording for every course." },
+  { href: "/app/owner/settings/payments", icon: CreditCard, title: "Payments", text: "PayHere and bank transfer details." },
+  { href: "/app/owner/settings/integrations", icon: Plug, title: "Integrations", text: "Video hosting, email sending and other connected services." },
 ];
 
 export default async function SettingsPage() {
   await requireRole("owner");
   return (
     <>
-      <PageHeader title="Settings" description="Owner-only configuration for the platform." />
+      <PageHeader title="Settings" description="Owner-only settings for the academy." />
       <Card>
         <ul className="divide-y divide-line">
-          {SECTIONS.map(({ href, icon: Icon, title, text, live, phase }) => {
-            const inner = (
-              <>
+          {SECTIONS.map(({ href, icon: Icon, title, text }) => (
+            <li key={title}>
+              <Link href={href} className="flex items-center gap-4 px-5 py-4 hover:bg-canvas">
                 <span className="flex size-10 shrink-0 items-center justify-center rounded-control bg-brand-soft text-brand">
                   <Icon className="size-5" aria-hidden="true" />
                 </span>
@@ -32,19 +32,10 @@ export default async function SettingsPage() {
                   <span className="block font-semibold text-ink">{title}</span>
                   <span className="block text-sm text-ink-muted">{text}</span>
                 </span>
-                {live ? <ChevronRight className="size-5 text-ink-muted" aria-hidden="true" /> : <span className="text-xs font-semibold text-ink-muted">Phase {phase ?? 4}</span>}
-              </>
-            );
-            return (
-              <li key={title}>
-                {href ? (
-                  <Link href={href} className="flex items-center gap-4 px-5 py-4 hover:bg-canvas">{inner}</Link>
-                ) : (
-                  <div className="flex items-center gap-4 px-5 py-4 opacity-70">{inner}</div>
-                )}
-              </li>
-            );
-          })}
+                <ChevronRight className="size-5 text-ink-muted" aria-hidden="true" />
+              </Link>
+            </li>
+          ))}
         </ul>
       </Card>
     </>

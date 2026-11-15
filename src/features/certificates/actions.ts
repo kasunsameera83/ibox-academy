@@ -94,10 +94,26 @@ export async function saveDefaultCertificateAction(input: CertificateDesign): Pr
   void _enabled;
 
   const supabase = await createClient();
+  const { data: before } = await supabase.from("site_settings").select("value").eq("key", DEFAULT_SETTING_KEY).maybeSingle();
   const { error } = await supabase
     .from("site_settings")
     .upsert({ key: DEFAULT_SETTING_KEY, value: design, is_public: true, updated_by: user.id });
   if (error) return { ok: false, error: "The default certificate couldn't be saved. Please try again." };
+
+  // Delete replaced default signatures, unless a customised course still shows them.
+  const old = parseDesign((before as { value: unknown } | null)?.value);
+  const kept = new Set([design.signaturePath, design.signature2Path].filter(Boolean));
+  const replaced = [old.signaturePath, old.signature2Path].filter((p): p is string => Boolean(p) && !kept.has(p) && defaultSignature.test(p!));
+  const stale: string[] = [];
+  for (const path of replaced) {
+    const [a, b] = await Promise.all([
+      supabase.from("courses").select("id", { count: "exact", head: true }).eq("certificate->>signaturePath", path),
+      supabase.from("courses").select("id", { count: "exact", head: true }).eq("certificate->>signature2Path", path),
+    ]);
+    // Only delete when both checks worked and found nothing.
+    if (!a.error && !b.error && (a.count ?? 1) === 0 && (b.count ?? 1) === 0) stale.push(path);
+  }
+  if (stale.length) await supabase.storage.from("course-media").remove(stale);
 
   await recordAudit(user.id, "settings.certificate_default", { type: "site_settings", id: DEFAULT_SETTING_KEY }, { template: design.template });
   revalidatePath("/app/owner/settings/certificate");
