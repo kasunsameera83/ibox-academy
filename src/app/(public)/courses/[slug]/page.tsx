@@ -71,8 +71,23 @@ export default async function CourseDetailPage({ params }: Props) {
     { icon: InfinityIcon, label: accessLabel(course.access_type, course.access_days) },
   ];
 
+  // Course details for search engines (schema.org). "<" is escaped so text can't end the script tag.
+  const structured = {
+    "@context": "https://schema.org",
+    "@type": "Course",
+    name: course.title,
+    description: course.seo_description || course.subtitle || course.title,
+    url: `${brand.url.replace(/\/$/, "")}/courses/${course.slug}`,
+    ...(thumb ? { image: thumb } : {}),
+    inLanguage: course.language || "en",
+    provider: { "@type": "Organization", name: brand.name, sameAs: brand.url },
+    offers: { "@type": "Offer", category: price === 0 ? "Free" : "Paid", price: price ?? 0, priceCurrency: "LKR", availability: "https://schema.org/InStock" },
+    hasCourseInstance: { "@type": "CourseInstance", courseMode: "Online", courseWorkload: stats.totalSeconds ? `PT${Math.max(1, Math.round(stats.totalSeconds / 60))}M` : undefined },
+  };
+
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structured).replace(/</g, "\\u003c") }} />
       {!isLive && (
         <div className="mx-auto max-w-[1280px] px-4 pt-6 sm:px-6 lg:px-8">
           <Alert tone="warning" title="Team preview">

@@ -30,10 +30,10 @@ export function PublicFooter({ site }: { site: SiteSettings }) {
           {columns.map((group, gi) => (
             <div key={gi}>
               <h2 className="type-label text-white/60">{group.title}</h2>
-              <ul className="mt-4 flex flex-col gap-2.5">
+              <ul className="mt-3 flex flex-col gap-1">
                 {group.links.map((link, li) => (
                   <li key={li}>
-                    <Link href={safeHref(link.href)} className="text-[15px] text-white hover:underline hover:underline-offset-4">{link.label}</Link>
+                    <Link href={safeHref(link.href)} className="inline-block py-1 text-[15px] text-white hover:underline hover:underline-offset-4">{link.label}</Link>
                   </li>
                 ))}
               </ul>
@@ -51,7 +51,7 @@ export function PublicFooter({ site }: { site: SiteSettings }) {
             <ul className="flex flex-wrap gap-5">
               {socials.map((k) => (
                 <li key={k}>
-                  <a href={safeHref(site.social[k], "#")} target="_blank" rel="noopener noreferrer" className="hover:text-white">{SOCIAL_LABELS[k]}</a>
+                  <a href={safeHref(site.social[k], "#")} target="_blank" rel="noopener noreferrer" className="inline-block py-1 hover:text-white">{SOCIAL_LABELS[k]}</a>
                 </li>
               ))}
             </ul>

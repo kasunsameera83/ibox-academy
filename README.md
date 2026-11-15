@@ -105,3 +105,8 @@ Supabase → Authentication → Users → (user) → remove the MFA factor, then
 - Postgres RLS + column grants enforce the same rules in the database. New users are always
   `student`; roles can't be changed from the browser.
 - Never put secret keys in `NEXT_PUBLIC_*` variables.
+
+## Before launch
+
+- **`docs/LAUNCH_CHECKLIST.md`**: settings to confirm in Supabase, Vercel, PayHere and Bunny, plus a 30-minute end-to-end test.
+- **`supabase/tests/access_rules.sql`**: 54 access checks (visitor, learner, staff, Owner). Run it on a local or staging database with `psql "$DATABASE_URL" -f supabase/tests/access_rules.sql`. It rolls everything back, but don't run it on production.

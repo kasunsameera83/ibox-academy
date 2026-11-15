@@ -60,7 +60,7 @@ function HeroBoard({ data }: { data: SectionOf<"hero">["data"] }) {
           <div className="overflow-hidden rounded-[32px] bg-surface">
             <div className="relative aspect-[4/5] bg-ink">
               <div className="absolute inset-0 grid grid-cols-6 gap-1.5 p-4">
-                <div className="col-span-4 rounded-[10px] bg-brand" />
+                <div className="col-span-4 rounded-[10px] bg-yellow" />
                 <div className="col-span-2 rounded-[10px] bg-accent" />
                 <div className="col-span-2 rounded-[10px] bg-block-mint" />
                 <div className="col-span-4 rounded-[10px] bg-white/10" />
@@ -136,7 +136,7 @@ function Hero({ s, media }: { s: SectionOf<"hero">; media: Media }) {
 
           {(d.primaryCta || d.secondaryCta) && (
             <div className="mt-5 flex flex-wrap gap-3">
-              {d.primaryCta && <ButtonLink href={safeHref(d.primaryCta.href)} size="lg">{d.primaryCta.label}</ButtonLink>}
+              {d.primaryCta && <ButtonLink href={safeHref(d.primaryCta.href)} size="lg" variant="yellow">{d.primaryCta.label}</ButtonLink>}
               {d.secondaryCta && (
                 <ButtonLink href={safeHref(d.secondaryCta.href)} size="lg" variant="secondary">{d.secondaryCta.label}</ButtonLink>
               )}
@@ -203,7 +203,7 @@ function Courses({ s, courses, saved, signedIn }: { s: SectionOf<"courses">; cou
       <div className="flex flex-wrap items-end justify-between gap-4">
         <h2 id={`${s.id}-title`} className="type-display-md text-ink">{s.data.title}</h2>
         {s.data.linkLabel && (
-          <Link href="/courses" className="inline-flex items-center gap-1.5 rounded-full px-1 text-[15px] font-semibold text-ink hover:underline hover:underline-offset-4">
+          <Link href="/courses" className="inline-flex min-h-11 items-center gap-1.5 rounded-full px-1 text-[15px] font-semibold text-ink hover:underline hover:underline-offset-4">
             {s.data.linkLabel} <ArrowRight className="size-4" aria-hidden="true" />
           </Link>
         )}
@@ -248,8 +248,8 @@ function Features({ s }: { s: SectionOf<"features"> }) {
   const items = s.data.items;
   const four = items.length === 4;
   const tones = four
-    ? ["bg-brand text-on-brand md:row-span-2", "bg-block-mint text-ink md:col-span-2", "bg-block-pink text-ink", "bg-block-sky text-ink"]
-    : ["bg-brand text-on-brand", "bg-block-mint text-ink", "bg-block-pink text-ink"];
+    ? ["bg-yellow text-on-yellow md:row-span-2", "bg-block-mint text-ink md:col-span-2", "bg-block-pink text-ink", "bg-block-sky text-ink"]
+    : ["bg-yellow text-on-yellow", "bg-block-mint text-ink", "bg-block-pink text-ink"];
   return (
     <section id={s.id} aria-labelledby={`${s.id}-title`} className="mx-auto max-w-[1280px] scroll-mt-24 px-4 pt-20 sm:px-6 lg:px-8 lg:pt-24">
       <h2 id={`${s.id}-title`} className="type-display-lg max-w-[16ch] text-ink">{s.data.title}</h2>
@@ -271,7 +271,7 @@ function Features({ s }: { s: SectionOf<"features"> }) {
                 <h3 className={big ? "type-display-md" : four && i === 1 ? "text-[28px] font-semibold leading-tight tracking-[-0.03em]" : "text-xl font-bold tracking-[-0.01em]"}>
                   {item.title}
                 </h3>
-                {item.text && <p className={cn("mt-3", big ? "text-lg text-white/90" : four && i === 1 ? "text-lg" : "")}>{item.text}</p>}
+                {item.text && <p className={cn("mt-3", big ? "text-lg" : four && i === 1 ? "text-lg" : "")}>{item.text}</p>}
               </div>
             </article>
           );
@@ -345,7 +345,7 @@ function Cta({ s }: { s: SectionOf<"cta"> }) {
           {s.data.text && <p className="mt-4 text-lg text-white/80">{s.data.text}</p>}
         </div>
         {s.data.cta && (
-          <ButtonLink href={safeHref(s.data.cta.href)} size="lg" className="shrink-0">
+          <ButtonLink href={safeHref(s.data.cta.href)} size="lg" variant="yellow" className="shrink-0">
             {s.data.cta.label} <ArrowRight className="size-5" aria-hidden="true" />
           </ButtonLink>
         )}

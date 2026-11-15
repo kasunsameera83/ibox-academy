@@ -12,30 +12,36 @@
  *  blocks in the iBox palette. Depth comes from colour, not shadows.
  */
 :root {
-  /* Brand */
-  --brand-primary: #6655e8;
-  --brand-primary-hover: #5443d6;
-  --brand-primary-soft: #eeecfd;
+  /* Brand: iBox near-black and yellow (from the logo).
+     "primary" drives buttons, links, focus rings and selected borders,
+     so it must be dark enough to read on white: that's the near-black.
+     Yellow never carries text; it's for highlights and big blocks. */
+  --brand-primary: #131418;
+  --brand-primary-hover: #2c2d33;
+  --brand-primary-soft: #fff4cc;
   --brand-on-primary: #ffffff;
+  /* The logo yellow. */
+  --brand-yellow: #fec205;
+  --brand-on-yellow: #131418;
 
   /* Accents */
-  --brand-accent: #ffd84d;
+  --brand-accent: #fec205;
   --brand-accent-ink: #3d2f00;
   --brand-lilac: #e4dffd;
 
   /* Colour blocks: big flat section and tile backgrounds.
      Ink text (--brand-ink) is readable on every light block. */
   --brand-block-lilac: #cdc3fb;
-  --brand-block-lemon: #fff0a3;
+  --brand-block-lemon: #ffe27a;
   --brand-block-mint: #c9ead4;
   --brand-block-pink: #f7d3df;
   --brand-block-sky: #cfe2fb;
   --brand-block-cream: #f5eedb;
   /* The one dark block; use white text on it. */
-  --brand-block-night: #1c1934;
+  --brand-block-night: #131418;
 
   /* Neutrals */
-  --brand-ink: #131218;
+  --brand-ink: #131418;
   --brand-ink-muted: #5c5a68;
   --brand-canvas: #f6f6f3;
   --brand-surface: #ffffff;

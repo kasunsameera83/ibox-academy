@@ -22,25 +22,34 @@ export const brand = {
 
   logo: {
     /**
-     * Full logo image (mark + name), e.g. "/brand/logo.svg".
+     * Full logo image (wordmark), e.g. "/brand/logo.svg".
      * Leave null to show the icon + brand name as text, so a name
      * change above updates the logo automatically.
      */
-    full: null as string | null,
+    full: "/brand/logo.svg" as string | null,
     /** Full logo for dark backgrounds. Falls back to `full`. */
-    fullOnDark: null as string | null,
+    fullOnDark: "/brand/logo-white.svg" as string | null,
     /** Square icon/mark image. Leave null to use the built-in mark. */
-    mark: null as string | null,
+    mark: "/brand/icon-light.svg" as string | null,
+    /** Versions with the "Learn · Create · Grow" tagline, for certificates, posters and social. Too small to read in the header. */
+    withTagline: "/brand/logo-tagline.svg",
+    withTaglineOnDark: "/brand/logo-tagline-white.svg",
+    /** PNG for emails (many email apps don't show SVG). Shown at 200px wide. */
+    email: "/brand/logo-email.png",
+    /** Width ÷ height of the full logo, so it can be sized without layout shift. */
+    aspect: 335.8 / 52.39,
   },
 
   icons: {
-    /** Browser tab icon. Replace the file in /public/brand/. */
+    /** Browser tab icon (dark iB). Replace the file in /public/brand/. */
     favicon: "/brand/icon.svg",
+    /** Square app/social icon (yellow iB), 512px PNG. */
+    app: "/brand/icon-512.png",
   },
 
   /** Empty values are hidden in the UI. */
   contact: {
-    email: "",
+    email: "hello@iboxacademy.com",
     phone: "",
     whatsapp: "",
     address: "Sri Lanka",

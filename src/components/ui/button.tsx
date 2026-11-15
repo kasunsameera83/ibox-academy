@@ -3,7 +3,7 @@ import type { ComponentProps } from "react";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type Variant = "primary" | "secondary" | "tertiary" | "destructive" | "ink";
+type Variant = "primary" | "secondary" | "tertiary" | "destructive" | "ink" | "yellow";
 type Size = "sm" | "md" | "lg" | "icon";
 
 // Every text button is a pill. Icon-only buttons (size "icon") are circles.
@@ -19,6 +19,8 @@ const variants: Record<Variant, string> = {
   destructive: "bg-danger text-white hover:bg-danger-ink",
   /** Black pill: for use on colour blocks, where purple would clash. */
   ink: "bg-ink text-white hover:bg-ink/85",
+  /** Brand yellow with dark text: for dark blocks and the main call to action. */
+  yellow: "bg-yellow text-on-yellow hover:brightness-[0.94]",
 };
 
 const sizes: Record<Size, string> = {

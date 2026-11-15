@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 export function BrandMark({ className }: { className?: string }) {
   if (brand.logo.mark) {
     // eslint-disable-next-line @next/next/no-img-element
-    return <img src={brand.logo.mark} alt="" className={cn("size-8", className)} />;
+    return <img src={brand.logo.mark} alt="" width={32} height={32} className={cn("size-8 rounded-[8px]", className)} />;
   }
   return (
     <svg viewBox="0 0 32 32" className={cn("size-8", className)} aria-hidden="true">
@@ -37,9 +37,16 @@ export function Logo({
       aria-label={`${brand.name} home`}
       className={cn("inline-flex shrink-0 items-center gap-2.5 rounded-control", className)}
     >
-      {fullLogo ? (
+      {fullLogo && showName ? (
+        // Width and height let the browser reserve space, so nothing jumps while it loads.
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={fullLogo} alt={brand.name} className="h-8 w-auto" />
+        <img
+          src={fullLogo}
+          alt={brand.name}
+          width={Math.round(28 * brand.logo.aspect)}
+          height={28}
+          className="h-6 w-auto sm:h-7"
+        />
       ) : (
         <>
           <BrandMark />
