@@ -57,6 +57,7 @@ export default async function CertificatePage({ params }: Props) {
           issuedAt={cert.issued_at}
           code={cert.code}
           signatureUrl={mediaUrl(design.signaturePath)}
+          signature2Url={mediaUrl(design.signature2Path)}
           className={cn(
             "print:shadow-none",
             design.template === "bold" ? "rounded-[24px]" : "ring-1 ring-line",

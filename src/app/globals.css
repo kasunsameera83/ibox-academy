@@ -48,6 +48,7 @@
 
   --font-sans: var(--font-brand), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: var(--font-brand-mono), ui-monospace, "SF Mono", Menlo, monospace;
+  --font-script: var(--font-brand-script), "Brush Script MT", cursive;
 }
 
 @layer base {

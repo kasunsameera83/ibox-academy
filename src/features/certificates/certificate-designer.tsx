@@ -19,14 +19,13 @@ const SIGNATURE_TYPES: Record<string, string> = { "image/png": "png", "image/jpe
 
 export function CertificateDesigner({ courseId, courseTitle, initial }: { courseId: string; courseTitle: string; initial: CertificateDesign }) {
   const router = useRouter();
-  const fileRef = useRef<HTMLInputElement>(null);
   const [design, setDesign] = useState<CertificateDesign>(initial);
   const [saved, setSaved] = useState<CertificateDesign>(initial);
   const [sampleName, setSampleName] = useState("Amaya Perera");
   const [customColor, setCustomColor] = useState(initial.color && !COLOR_PRESETS.some((c) => c.value === initial.color) ? initial.color : "#7c3aed");
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
+  const [uploading, setUploading] = useState<SignatureSlot | null>(null);
   const [pending, start] = useTransition();
 
   const dirty = JSON.stringify(design) !== JSON.stringify(saved);
@@ -35,19 +34,19 @@ export function CertificateDesigner({ courseId, courseTitle, initial }: { course
     setDesign((d) => ({ ...d, [key]: value }));
   };
 
-  async function uploadSignature(file: File) {
+  async function uploadSignature(slot: SignatureSlot, file: File) {
     setError(null);
     const ext = SIGNATURE_TYPES[file.type];
     if (!ext) return setError("Use a PNG (best with a transparent background), JPG or WebP image.");
     if (file.size > 2 * 1024 * 1024) return setError("Use an image under 2 MB.");
-    setUploading(true);
+    setUploading(slot);
     const path = `courses/${courseId}/signature-${crypto.randomUUID()}.${ext}`;
     const { error: uploadError } = await createClient()
       .storage.from("course-media")
       .upload(path, file, { contentType: file.type, cacheControl: "31536000", upsert: false });
-    setUploading(false);
+    setUploading(null);
     if (uploadError) return setError("The signature couldn't be uploaded. Please try again.");
-    set("signaturePath", path);
+    set(slot, path);
   }
 
   function save() {
@@ -158,41 +157,42 @@ export function CertificateDesigner({ courseId, courseTitle, initial }: { course
             />
           </div>
 
-          <fieldset className="flex flex-col gap-4">
-            <legend className="mb-1 text-sm font-semibold text-ink">Signed by (optional)</legend>
-            <Input label="Name" name="signerName" value={design.signerName} maxLength={LIMITS.signerName} onChange={(e) => set("signerName", e.target.value)} placeholder="e.g. Nimal Perera" />
-            <Input label="Title" name="signerTitle" value={design.signerTitle} maxLength={LIMITS.signerTitle} onChange={(e) => set("signerTitle", e.target.value)} placeholder={`e.g. Founder, ${brand.name}`} />
-            <div className="flex flex-col gap-2">
-              <p className="text-sm font-semibold text-ink">Signature image</p>
-              <input
-                ref={fileRef}
-                type="file"
-                accept="image/png,image/jpeg,image/webp"
-                className="sr-only"
-                tabIndex={-1}
-                onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (f) void uploadSignature(f);
-                  e.target.value = "";
-                }}
-              />
-              <div className="flex flex-wrap items-center gap-2">
-                {design.signaturePath && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={mediaUrl(design.signaturePath) ?? ""} alt="Signature" className="h-12 max-w-40 rounded-control border border-line bg-surface object-contain p-1" />
-                )}
-                <Button variant="secondary" size="sm" loading={uploading} onClick={() => fileRef.current?.click()} className="rounded-full">
-                  <ImagePlus className="size-4" aria-hidden="true" /> {design.signaturePath ? "Replace" : "Upload signature"}
-                </Button>
-                {design.signaturePath && (
-                  <Button variant="tertiary" size="sm" onClick={() => set("signaturePath", null)} className="rounded-full">
-                    <Trash2 className="size-4" aria-hidden="true" /> Remove
-                  </Button>
-                )}
-              </div>
-              <p className="text-xs text-ink-muted">Sign on white paper, take a photo, and remove the background for the best result. PNG, up to 2 MB.</p>
-            </div>
-          </fieldset>
+          <Input
+            label="Recognition line (optional)"
+            name="note"
+            value={design.note}
+            maxLength={LIMITS.note}
+            onChange={(e) => set("note", e.target.value)}
+            placeholder="e.g. In recognition of dedication and hard work."
+            hint="A short line under the course title. Shown on the Prestige look."
+          />
+
+          <SignerFields
+            legend="Signed by (optional)"
+            slot="signaturePath"
+            name={design.signerName}
+            title={design.signerTitle}
+            path={design.signaturePath}
+            uploading={uploading === "signaturePath"}
+            onName={(v) => set("signerName", v)}
+            onTitle={(v) => set("signerTitle", v)}
+            onUpload={(f) => void uploadSignature("signaturePath", f)}
+            onRemove={() => set("signaturePath", null)}
+          />
+          {design.template === "prestige" && (
+            <SignerFields
+              legend="Second signature (optional)"
+              slot="signature2Path"
+              name={design.signer2Name}
+              title={design.signer2Title}
+              path={design.signature2Path}
+              uploading={uploading === "signature2Path"}
+              onName={(v) => set("signer2Name", v)}
+              onTitle={(v) => set("signer2Title", v)}
+              onUpload={(f) => void uploadSignature("signature2Path", f)}
+              onRemove={() => set("signature2Path", null)}
+            />
+          )}
         </div>
 
         {/* Live preview */}
@@ -217,6 +217,7 @@ export function CertificateDesigner({ courseId, courseTitle, initial }: { course
               issuedAt={new Date()}
               code="IBX-PREV-IEW0"
               signatureUrl={mediaUrl(design.signaturePath)}
+              signature2Url={mediaUrl(design.signature2Path)}
               className={cn("shadow-float", design.template === "bold" && "rounded-[14px]")}
             />
           </div>
@@ -227,12 +228,68 @@ export function CertificateDesigner({ courseId, courseTitle, initial }: { course
       {error && <Alert tone="danger">{error}</Alert>}
       {notice && !dirty && <Alert tone="success">{notice}</Alert>}
       <div className="sticky bottom-4 z-10 flex flex-wrap items-center gap-3 rounded-card border border-line bg-surface p-3 shadow-float">
-        <Button onClick={save} loading={pending} disabled={!dirty || uploading} className="rounded-full">Save certificate</Button>
+        <Button onClick={save} loading={pending} disabled={!dirty || uploading !== null} className="rounded-full">Save certificate</Button>
         <span className="text-sm text-ink-muted" aria-live="polite">{dirty ? "You have unsaved changes." : "All changes saved."}</span>
         {dirty && (
           <Button variant="tertiary" size="sm" onClick={() => setDesign(saved)} disabled={pending} className="ml-auto rounded-full">Discard changes</Button>
         )}
       </div>
     </div>
+  );
+}
+
+type SignatureSlot = "signaturePath" | "signature2Path";
+
+function SignerFields(props: {
+  legend: string;
+  slot: SignatureSlot;
+  name: string;
+  title: string;
+  path: string | null;
+  uploading: boolean;
+  onName: (v: string) => void;
+  onTitle: (v: string) => void;
+  onUpload: (f: File) => void;
+  onRemove: () => void;
+}) {
+  const fileRef = useRef<HTMLInputElement>(null);
+  const url = mediaUrl(props.path);
+  return (
+    <fieldset className="flex flex-col gap-4">
+      <legend className="mb-1 text-sm font-semibold text-ink">{props.legend}</legend>
+      <Input label="Name" name={props.slot === "signaturePath" ? "signerName" : "signer2Name"} value={props.name} maxLength={LIMITS.signerName} onChange={(e) => props.onName(e.target.value)} placeholder="e.g. Nimal Perera" />
+      <Input label="Title" name={props.slot === "signaturePath" ? "signerTitle" : "signer2Title"} value={props.title} maxLength={LIMITS.signerTitle} onChange={(e) => props.onTitle(e.target.value)} placeholder={`e.g. Founder, ${brand.name}`} />
+      <div className="flex flex-col gap-2">
+        <p className="text-sm font-semibold text-ink">Signature image</p>
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/png,image/jpeg,image/webp"
+          className="sr-only"
+          tabIndex={-1}
+          aria-label={`${props.legend}: signature image`}
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) props.onUpload(f);
+            e.target.value = "";
+          }}
+        />
+        <div className="flex flex-wrap items-center gap-2">
+          {url && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={url} alt="Signature" className="h-12 max-w-40 rounded-control border border-line bg-surface object-contain p-1" />
+          )}
+          <Button variant="secondary" size="sm" loading={props.uploading} onClick={() => fileRef.current?.click()} className="rounded-full">
+            <ImagePlus className="size-4" aria-hidden="true" /> {props.path ? "Replace" : "Upload signature"}
+          </Button>
+          {props.path && (
+            <Button variant="tertiary" size="sm" onClick={props.onRemove} className="rounded-full">
+              <Trash2 className="size-4" aria-hidden="true" /> Remove
+            </Button>
+          )}
+        </div>
+        <p className="text-xs text-ink-muted">Sign on white paper, take a photo, and remove the background for the best result. PNG, up to 2 MB.</p>
+      </div>
+    </fieldset>
   );
 }

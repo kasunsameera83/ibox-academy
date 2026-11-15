@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { brand } from "@/brand";
-import { brandFont, brandMonoFont } from "@/brand/fonts";
+import { brandFont, brandMonoFont, scriptFont } from "@/brand/fonts";
 import { getSiteSettings } from "@/lib/dal/cms";
 import "./globals.css";
 
@@ -26,7 +26,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang={brand.locale.default} className={`${brandFont.variable} ${brandMonoFont.variable}`}>
+    <html lang={brand.locale.default} className={`${brandFont.variable} ${brandMonoFont.variable} ${scriptFont.variable}`}>
       <body className="bg-canvas font-sans text-ink antialiased">{children}</body>
     </html>
   );
