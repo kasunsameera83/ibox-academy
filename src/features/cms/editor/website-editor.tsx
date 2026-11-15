@@ -14,7 +14,7 @@ import type { CourseOption, EditorPage, MediaAsset } from "@/lib/dal/cms";
 import { cn } from "@/lib/utils";
 import { DraftToolbar, stable, useDraft } from "./draft-controls";
 import { IconBtn } from "./fields";
-import { PLACEHOLDER, SectionForm, SeoForm, type FormContext } from "./section-forms";
+import { hasStarterNotes, SectionForm, SeoForm, type FormContext } from "./section-forms";
 
 export type Device = "desktop" | "tablet" | "mobile";
 export const DEVICES: Record<Device, { width: number; label: string; Icon: typeof Monitor }> = {
@@ -161,7 +161,7 @@ export function WebsiteEditor({
 
   const ctx: FormContext = { media, courses, canEdit };
   const differsFromLive = page.published ? stable(clean(content)) !== stable(page.published) : true;
-  const hasNotes = PLACEHOLDER.test(JSON.stringify(content));
+  const hasNotes = hasStarterNotes(content);
 
   // ---- section operations
   const update = (s: Section) => setContent((c) => ({ ...c, sections: c.sections.map((x) => (x.id === s.id ? s : x)) }));

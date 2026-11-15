@@ -91,7 +91,9 @@ export const footerNav = [
   {
     title: "Policies",
     links: [
-      { label: "Terms & policies", href: "/policies" },
+      { label: "Terms & Conditions", href: "/terms" },
+      { label: "Refund Policy", href: "/refund-policy" },
+      { label: "Privacy Policy", href: "/privacy" },
     ],
   },
 ];

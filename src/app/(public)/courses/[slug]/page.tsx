@@ -240,7 +240,7 @@ export default async function CourseDetailPage({ params }: Props) {
                 <li className="flex items-center gap-2"><CheckCircle2 className="size-4 text-success" aria-hidden="true" /> Certificate when you finish the course</li>
               </ul>
               <p className="text-xs text-ink-muted">
-                See our <Link href="/policies" className="underline hover:text-ink">refund policy</Link> before you buy.
+                See our <Link href="/refund-policy" className="underline hover:text-ink">refund policy</Link> before you buy.
               </p>
             </div>
           </div>

@@ -22,7 +22,7 @@ export default async function SignupPage({ searchParams }: { searchParams: Searc
       <SignupForm />
       <p className="mt-4 text-center text-xs text-ink-muted">
         By creating an account you agree to our{" "}
-        <Link href="/policies" className="underline hover:text-ink">terms and privacy policy</Link>.
+        <Link href="/terms" className="underline hover:text-ink">terms</Link> and <Link href="/privacy" className="underline hover:text-ink">privacy policy</Link>.
       </p>
       <p className="mt-4 text-center text-sm text-ink-muted">
         Already have an account?{" "}

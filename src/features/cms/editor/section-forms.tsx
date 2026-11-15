@@ -279,7 +279,15 @@ function CtaForm({ s, set, ctx }: FormProps<"cta">) {
 }
 
 /** Starter notes look like "[Write your refund rule here]" (but not [link](/path)). */
-export const PLACEHOLDER = /\[[^\]]*(replace|write|add|have (this|these) checked|last updated)[^\]]*\](?!\()/i;
+export const PLACEHOLDER = /\[[^\]]*(replace|write|add|decide|have (this|these) checked|last updated|your business|how long)[^\]]*\](?!\()|\[\d[\d–%\s-]*\](?!\()/i;
+
+/** True when any text field in the page still has a starter note. Checks each string on its own. */
+export function hasStarterNotes(value: unknown): boolean {
+  if (typeof value === "string") return PLACEHOLDER.test(value);
+  if (Array.isArray(value)) return value.some(hasStarterNotes);
+  if (value && typeof value === "object") return Object.values(value).some(hasStarterNotes);
+  return false;
+}
 
 const TONE_LABELS: Record<(typeof TONES)[number], string> = { lilac: "Lilac", lemon: "Lemon", mint: "Mint", sky: "Sky", pink: "Pink", cream: "Cream" };
 

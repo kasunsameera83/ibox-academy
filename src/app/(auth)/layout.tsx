@@ -17,7 +17,9 @@ export default async function AuthLayout({ children }: { children: ReactNode }) 
           <div className="w-full max-w-[420px]">{children}</div>
         </main>
         <footer className="px-4 pb-6 text-center text-xs text-ink-muted sm:px-8 lg:text-left">
-          <Link href="/policies" className="hover:text-ink">Terms & privacy</Link>
+          <Link href="/terms" className="hover:text-ink">Terms</Link>
+          <span aria-hidden="true"> · </span>
+          <Link href="/privacy" className="hover:text-ink">Privacy</Link>
           <span aria-hidden="true"> · </span>
           <Link href="/help" className="hover:text-ink">Help</Link>
         </footer>

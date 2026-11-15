@@ -43,7 +43,7 @@ export default async function MyPaymentsPage() {
         )}
       </Card>
       <p className="mt-4 text-sm text-ink-muted">
-        Need a refund? See our <Link href="/policies" className="underline hover:text-ink">refund policy</Link> and contact support with your order reference.
+        Need a refund? See our <Link href="/refund-policy" className="underline hover:text-ink">refund policy</Link> and contact support with your order reference.
       </p>
     </>
   );

@@ -111,7 +111,7 @@ export const PAGE_DEFS: Record<string, PageDef> = {
             items: [
               { question: "How can I pay?", answer: "By card through PayHere, or by bank transfer. For a transfer, upload a photo or PDF of your slip on the order page." },
               { question: "Are prices in rupees?", answer: "Yes. Every price is in Sri Lankan rupees (LKR)." },
-              { question: "Can I get a refund?", answer: "[Write your refund rule here, e.g. how many days after buying and how to ask.]" },
+              { question: "Can I get a refund?", answer: "Yes, within the time limit in our Refund Policy (iboxacademy.com/refund-policy). Open a support request with your order reference to ask." },
             ],
           },
         },
@@ -132,6 +132,148 @@ export const PAGE_DEFS: Record<string, PageDef> = {
       ],
     },
   },
+  terms: {
+    slug: "terms",
+    label: "Terms & Conditions",
+    path: "/terms",
+    sections: INFO_SECTIONS,
+    liveBeforePublish: false,
+    starter: {
+      seo: seo(`The terms for using ${brand.name} and buying its courses.`),
+      sections: [
+        { id: "intro", type: "intro", enabled: true, data: { title: "Terms & Conditions", text: "[Last updated: add the date you publish.]", tone: "cream" } },
+        {
+          id: "terms",
+          type: "text",
+          enabled: true,
+          data: {
+            title: "",
+            body: `[Have these terms checked by someone qualified before you publish.]
+
+## Who we are
+${brand.name} is run by [your business name, as registered], [address], Sri Lanka. Contact us at hello@iboxacademy.com.
+
+## Your account
+- You must give accurate details when you sign up and keep your password private.
+- You're responsible for what happens on your account.
+- One account is for one person. Course access can't be shared or resold.
+
+## Buying a course
+- Prices are shown in Sri Lankan rupees (LKR) and include [any taxes, or "no taxes apply"].
+- You can pay by card through PayHere, or by bank transfer.
+- A course opens when payment is confirmed. For bank transfers, that's after our team checks your slip.
+- How long you can access a course is shown on the course page (lifetime, or a set number of days).
+
+## Using the content
+- Courses are for your own learning. Don't copy, download, record, share or resell the videos or materials.
+- We may suspend accounts that break these terms, without a refund.
+
+## Certificates
+Certificates are issued when you finish every lesson and any assignments are approved. Each has a public link so others can check it's real.
+
+## Refunds
+See our [Refund Policy](/refund-policy).
+
+## Changes and availability
+- We may update courses to keep them current, and update these terms. We'll show the date of the latest change at the top.
+- We try to keep the site running at all times, but can't promise it will never be unavailable.
+
+## Law
+These terms are governed by the laws of Sri Lanka.`,
+          },
+        },
+      ],
+    },
+  },
+  "refund-policy": {
+    slug: "refund-policy",
+    label: "Refund Policy",
+    path: "/refund-policy",
+    sections: INFO_SECTIONS,
+    liveBeforePublish: false,
+    starter: {
+      seo: seo(`When and how you can get a refund for a ${brand.name} course.`),
+      sections: [
+        { id: "intro", type: "intro", enabled: true, data: { title: "Refund Policy", text: "[Last updated: add the date you publish.]", tone: "mint" } },
+        {
+          id: "policy",
+          type: "text",
+          enabled: true,
+          data: {
+            title: "",
+            body: `[Decide the numbers in brackets, then delete these notes.]
+
+## When you can get a refund
+You can ask for a full refund within **[7] days** of buying a course, as long as you've completed less than **[20]%** of it.
+
+## When we can't refund
+- After [7] days from purchase.
+- If you've completed [20]% or more of the course, or downloaded its resources.
+- If a certificate has already been issued for the course.
+- If your account was suspended for breaking our [Terms & Conditions](/terms).
+
+## How to ask
+Open a support request from your account (Help → Ask for help → Refund), or email hello@iboxacademy.com with your order reference (it looks like IBX-261115-A1B2C3).
+
+## How you get your money back
+- **Card payments (PayHere):** refunded to the same card. Your bank usually shows it within [5–10] working days.
+- **Bank transfers:** refunded to the bank account you name, within [7] working days.
+- Course access ends when the refund is made.
+
+## Courses we cancel
+If we remove a course you paid for before you could finish it, we'll refund you in full or offer another course of the same price.`,
+          },
+        },
+      ],
+    },
+  },
+  privacy: {
+    slug: "privacy",
+    label: "Privacy Policy",
+    path: "/privacy",
+    sections: INFO_SECTIONS,
+    liveBeforePublish: false,
+    starter: {
+      seo: seo(`What personal information ${brand.name} collects and how it's used.`),
+      sections: [
+        { id: "intro", type: "intro", enabled: true, data: { title: "Privacy Policy", text: "[Last updated: add the date you publish.]", tone: "sky" } },
+        {
+          id: "policy",
+          type: "text",
+          enabled: true,
+          data: {
+            title: "",
+            body: `[Have this checked by someone qualified before you publish.]
+
+## What we collect
+- **Account details:** your name, email address and password (stored securely; we can't see it).
+- **Learning activity:** courses you're enrolled in, lessons completed, quiz answers and assignment files.
+- **Payments:** order details and, for bank transfers, the slip you upload. Card details are handled by PayHere; we never see or store your card number.
+- **Support:** messages you send us.
+- **Technical data:** basic logs such as your browser type and IP address, to keep the site secure.
+
+## Why we use it
+To give you access to courses, process payments, issue certificates, answer support requests and keep accounts secure. We don't sell your information.
+
+## Who else handles it
+We use trusted providers to run the site: Supabase (accounts and data), Vercel (hosting), Bunny Stream (video), PayHere (card payments) and our email provider. They handle data only to provide their service to us.
+
+## Certificates
+If you earn a certificate, your name, the course and the date can be seen by anyone with the certificate link.
+
+## Cookies
+We use essential cookies to keep you signed in. We don't use advertising cookies.
+
+## How long we keep it
+While your account is open, and for [how long] after, unless the law requires longer (for example, payment records).
+
+## Your choices
+You can update your name in Settings, and ask us for a copy of your data or to delete your account by emailing hello@iboxacademy.com.`,
+          },
+        },
+      ],
+    },
+  },
   policies: {
     slug: "policies",
     label: "Policies",
@@ -139,43 +281,16 @@ export const PAGE_DEFS: Record<string, PageDef> = {
     sections: INFO_SECTIONS,
     liveBeforePublish: false,
     starter: {
-      seo: seo(`Terms of use, payments and refunds, and privacy at ${brand.name}.`),
+      seo: seo(`Terms, refunds and privacy at ${brand.name}.`),
       sections: [
-        { id: "intro", type: "intro", enabled: true, data: { title: "Terms & policies", text: "[Last updated: add the date you publish.]", tone: "cream" } },
+        { id: "intro", type: "intro", enabled: true, data: { title: "Our policies", text: "The rules for using the site, getting a refund, and how we handle your information.", tone: "cream" } },
         {
-          id: "terms",
+          id: "links",
           type: "text",
           enabled: true,
           data: {
-            title: "Terms of use",
-            body: "[Have these terms checked before you publish. Cover at least:]\n\n- Who can create an account\n- That course access is for the buyer only and can't be shared\n- That course content may not be copied or resold\n- What happens if an account breaks these rules",
-          },
-        },
-        {
-          id: "payments-refunds",
-          type: "text",
-          enabled: true,
-          data: {
-            title: "Payments and refunds",
-            body: "Prices are in Sri Lankan rupees. You can pay by card through PayHere or by bank transfer.\n\nCourses paid by bank transfer open after our team checks the slip.\n\n## Refunds\n[Write your refund rule: the time limit, what counts, and how to ask.]",
-          },
-        },
-        {
-          id: "privacy",
-          type: "text",
-          enabled: true,
-          data: {
-            title: "Privacy",
-            body: "[Have this checked before you publish. Explain:]\n\n- What you collect: name, email, phone, payment slips, course progress\n- Why: to give course access, handle payments and issue certificates\n- Who else handles it: PayHere for card payments, plus your hosting and video providers\n- How long you keep it, and how to ask for a copy or deletion",
-          },
-        },
-        {
-          id: "certificates",
-          type: "text",
-          enabled: true,
-          data: {
-            title: "Certificates",
-            body: "A certificate is issued when every lesson is complete and any assignments are approved. Each certificate has a public link so employers can check it's real.",
+            title: "",
+            body: "- [Terms & Conditions](/terms)\n- [Refund Policy](/refund-policy)\n- [Privacy Policy](/privacy)",
           },
         },
       ],
@@ -183,7 +298,7 @@ export const PAGE_DEFS: Record<string, PageDef> = {
   },
 };
 
-export const PAGE_ORDER = ["home", "about", "contact", "help", "policies"] as const;
+export const PAGE_ORDER = ["home", "about", "contact", "help", "terms", "refund-policy", "privacy", "policies"] as const;
 export const SITE_SLUG = "site";
 
 /** Menus and footer before the first publish: today's built-in values. */

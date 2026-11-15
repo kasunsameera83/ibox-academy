@@ -78,7 +78,7 @@ export default async function CheckoutPage({ params, searchParams }: { params: P
             <li className="flex gap-2"><CheckCircle2 className="mt-0.5 size-4 shrink-0 text-success" aria-hidden="true" /> Signed in as {user.email}</li>
           </ul>
           <p className="mt-4 text-xs text-ink-muted">
-            By paying you agree to our <Link href="/policies" className="underline hover:text-ink">terms and refund policy</Link>.
+            By paying you agree to our <Link href="/terms" className="underline hover:text-ink">terms</Link> and <Link href="/refund-policy" className="underline hover:text-ink">refund policy</Link>.
           </p>
         </aside>
       </div>
