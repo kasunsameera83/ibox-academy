@@ -44,9 +44,44 @@ function ago(iso: string | null): string {
   return `${Math.round(hours / 24)} days ago`;
 }
 
-function Pills<T extends string | number>({ items, current, href, label }: { items: readonly { value: T; label: string }[]; current: T; href: (v: T) => string; label: string }) {
+function Pills<T extends string | number>({
+  items,
+  current,
+  href,
+  label,
+  wrap = false,
+}: {
+  items: readonly { value: T; label: string }[];
+  current: T;
+  href: (v: T) => string;
+  label: string;
+  /** Separate chips that wrap onto more lines, for long filter lists. */
+  wrap?: boolean;
+}) {
+  if (wrap) {
+    return (
+      <nav aria-label={label}>
+        <ul className="flex flex-wrap gap-2">
+          {items.map((i) => (
+            <li key={String(i.value)}>
+              <Link
+                href={href(i.value)}
+                aria-current={current === i.value ? "page" : undefined}
+                className={cn(
+                  "inline-flex h-9 items-center whitespace-nowrap rounded-full border px-4 text-sm font-semibold",
+                  current === i.value ? "border-ink bg-ink text-white" : "border-line bg-surface text-ink hover:border-ink/30",
+                )}
+              >
+                {i.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    );
+  }
   return (
-    <nav aria-label={label} className="-mx-1 overflow-x-auto px-1">
+    <nav aria-label={label} className="-mx-1 overflow-x-auto px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       <ul className="flex w-max gap-1 rounded-full border border-line bg-surface p-1">
         {items.map((i) => (
           <li key={String(i.value)}>
@@ -127,9 +162,9 @@ async function ActivityTab({ base, sp }: { base: string; sp: SP }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-        <Pills label="Kind of activity" items={ACTIVITY_GROUPS} current={group.value} href={(v) => href({ group: v })} />
-        <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-col gap-3">
+        <Pills wrap label="Kind of activity" items={ACTIVITY_GROUPS} current={group.value} href={(v) => href({ group: v })} />
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <Pills label="Period" items={PERIODS.filter((p) => p.value !== 1)} current={days} href={(v) => href({ days: v })} />
           <a href={exportHref} className="inline-flex h-10 items-center gap-2 rounded-full border border-line bg-surface px-4 text-sm font-semibold text-ink hover:bg-canvas">
             <Download className="size-4" aria-hidden="true" /> Export CSV
@@ -209,8 +244,8 @@ async function SigninsTab({ base, sp }: { base: string; sp: SP }) {
         </Alert>
       )}
 
-      <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-        <Pills label="Kind of event" items={SIGNIN_FILTERS} current={filter.value} href={(v) => href({ show: v })} />
+      <div className="flex flex-col gap-3">
+        <Pills wrap label="Kind of event" items={SIGNIN_FILTERS} current={filter.value} href={(v) => href({ show: v })} />
         <Pills label="Period" items={PERIODS.filter((p) => p.value <= 90)} current={days} href={(v) => href({ days: v })} />
       </div>
 
