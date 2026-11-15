@@ -41,9 +41,15 @@ export function PublicFooter({ site }: { site: SiteSettings }) {
           ))}
         </div>
 
-        <p aria-hidden="true" className="mt-16 select-none text-[clamp(3rem,13vw,10.5rem)] font-semibold leading-[0.85] tracking-[-0.06em] text-white/10">
-          {brand.shortName}
-        </p>
+        {brand.logo.fullOnDark ? (
+          // The real wordmark, faint: typed text didn't match the logo's letterforms.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={brand.logo.fullOnDark} alt="" aria-hidden="true" className="mt-16 w-[min(100%,46rem)] select-none opacity-[0.07]" />
+        ) : (
+          <p aria-hidden="true" className="mt-16 select-none text-[clamp(3rem,13vw,10.5rem)] font-semibold leading-[0.85] tracking-[-0.06em] text-white/10">
+            {brand.shortName}
+          </p>
+        )}
 
         <div className="mt-6 flex flex-col gap-3 border-t border-white/15 pt-6 text-sm text-white/60 sm:flex-row sm:items-center sm:justify-between">
           <p>© {year} {brand.name}. All rights reserved.</p>
