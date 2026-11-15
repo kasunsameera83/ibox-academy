@@ -16,7 +16,7 @@ const nextConfig: NextConfig = {
       {
         // The website editor shows draft previews in a same-site frame.
         // Later rules win, so this relaxes DENY for these pages only.
-        source: "/preview/:path*",
+        source: "/cms-preview/:path*",
         headers: [
           { key: "X-Frame-Options", value: "SAMEORIGIN" },
           { key: "Content-Security-Policy", value: "frame-ancestors 'self'" },

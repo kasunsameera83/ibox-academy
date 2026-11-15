@@ -1,41 +1,28 @@
 "use client";
 
-import { useCallback, useEffect, useId, useMemo, useRef, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import {
   DndContext, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent,
 } from "@dnd-kit/core";
 import { SortableContext, arrayMove, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import {
-  ArrowDown, ArrowUp, Check, Eye, EyeOff, ExternalLink, GripVertical, History, Loader2, Monitor, Plus,
-  Search as SearchIcon, Smartphone, Tablet, Trash2, TriangleAlert, X,
-} from "lucide-react";
-import { Alert } from "@/components/ui/alert";
+import { ArrowDown, ArrowUp, Eye, EyeOff, GripVertical, Monitor, Plus, Search as SearchIcon, Smartphone, Tablet, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createSection, SECTION_LIBRARY } from "@/lib/cms/defaults";
 import { pageContentSchema, type PageContent, type Section, type SectionType } from "@/lib/cms/schema";
 import type { CourseOption, EditorPage, MediaAsset } from "@/lib/dal/cms";
 import { cn } from "@/lib/utils";
-import { discardDraftAction, publishPageAction, restoreVersionAction, saveDraftAction } from "../actions";
+import { DraftToolbar, stable, useDraft } from "./draft-controls";
 import { IconBtn } from "./fields";
-import { SectionForm, SeoForm, type FormContext } from "./section-forms";
+import { PLACEHOLDER, SectionForm, SeoForm, type FormContext } from "./section-forms";
 
-type SaveState = "saved" | "unsaved" | "saving" | "invalid" | "error" | "conflict";
-type Device = "desktop" | "tablet" | "mobile";
-const DEVICES: Record<Device, { width: number; label: string; Icon: typeof Monitor }> = {
+export type Device = "desktop" | "tablet" | "mobile";
+export const DEVICES: Record<Device, { width: number; label: string; Icon: typeof Monitor }> = {
   desktop: { width: 1280, label: "Desktop", Icon: Monitor },
   tablet: { width: 820, label: "Tablet", Icon: Tablet },
   mobile: { width: 390, label: "Mobile", Icon: Smartphone },
 };
 const SEO = "__seo";
-
-/** Key-sorted JSON, so "has it changed?" doesn't depend on key order. */
-function stable(value: unknown): string {
-  return JSON.stringify(value, (_k, v) =>
-    v && typeof v === "object" && !Array.isArray(v) ? Object.fromEntries(Object.entries(v).sort(([a], [b]) => a.localeCompare(b))) : v,
-  );
-}
 
 /** Drops blank lines from one-per-line lists before saving. */
 function clean(content: PageContent): PageContent {
@@ -61,10 +48,11 @@ function summary(s: Section): string {
     case "testimonials": return s.data.items.length ? `${s.data.items.length} quotes` : "No quotes yet (hidden)";
     case "faq": return `${s.data.items.length} questions`;
     case "cta": return s.data.headline;
+    case "intro": return s.data.title;
+    case "text": return s.data.title || s.data.body.slice(0, 60);
+    case "contact": return s.data.title;
   }
 }
-
-const dateTime = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Colombo" });
 
 // ---------------------------------------------------------------- outline row
 
@@ -114,7 +102,7 @@ function OutlineRow({
 
 // ---------------------------------------------------------------- preview
 
-function Preview({ slug, device, reloadKey }: { slug: string; device: Device; reloadKey: number }) {
+export function Preview({ slug, device, reloadKey }: { slug: string; device: Device; reloadKey: number }) {
   const boxRef = useRef<HTMLDivElement>(null);
   const [box, setBox] = useState({ w: 0, h: 0 });
   useEffect(() => {
@@ -132,7 +120,7 @@ function Preview({ slug, device, reloadKey }: { slug: string; device: Device; re
         <iframe
           key={reloadKey}
           title={`Preview: ${DEVICES[device].label}`}
-          src={`/preview/${slug}?r=${reloadKey}`}
+          src={`/cms-preview/${slug}?r=${reloadKey}`}
           className="absolute left-1/2 top-4 origin-top rounded-[12px] border border-line bg-canvas shadow-float"
           style={{ width, height: Math.max(400, (box.h - 32) / scale), transform: `translateX(-50%) scale(${scale})` }}
         />
@@ -144,77 +132,36 @@ function Preview({ slug, device, reloadKey }: { slug: string; device: Device; re
 // ---------------------------------------------------------------- editor
 
 export function WebsiteEditor({
-  page, media, courses, canEdit, canPublish, pageLabel, publicPath,
+  page, media, courses, canEdit, canPublish, pageLabel, publicPath, sectionTypes,
 }: {
-  page: EditorPage; media: MediaAsset[]; courses: CourseOption[]; canEdit: boolean; canPublish: boolean; pageLabel: string; publicPath: string;
+  page: EditorPage; media: MediaAsset[]; courses: CourseOption[]; canEdit: boolean; canPublish: boolean;
+  pageLabel: string; publicPath: string; sectionTypes: SectionType[];
 }) {
-  const router = useRouter();
-  const [content, setContent] = useState<PageContent>(page.draft);
-  const [savedJson, setSavedJson] = useState(() => (page.draftUpdatedAt ? stable(page.draft) : ""));
-  const [expected, setExpected] = useState<string | null>(page.draftUpdatedAt);
-  const [state, setState] = useState<SaveState>(page.draftUpdatedAt ? "saved" : "unsaved");
-  const [message, setMessage] = useState<string | null>(null);
-  const [selected, setSelected] = useState<string>(page.draft.sections[0]?.id ?? SEO);
-  const [device, setDevice] = useState<Device>("desktop");
-  const [reloadKey, setReloadKey] = useState(0);
-  const [tab, setTab] = useState<"outline" | "edit" | "preview">("outline");
-  const [confirmRemove, setConfirmRemove] = useState(false);
-  const [notice, setNotice] = useState<string | null>(null);
-  const [pending, start] = useTransition();
-  const publishRef = useRef<HTMLDialogElement>(null);
-  const historyRef = useRef<HTMLDialogElement>(null);
-  const publishTitle = useId();
-  const historyTitle = useId();
-  const [note, setNote] = useState("");
-  const [dialogError, setDialogError] = useState<string | null>(null);
-
-  const ctx: FormContext = { media, courses, canEdit };
-  const json = useMemo(() => stable(content), [content]);
-  const dirty = json !== savedJson;
-  const differsFromLive = page.published ? stable(clean(content)) !== stable(page.published) : true;
-
-  // ---- autosave
-  const save = useCallback(async () => {
-    const cleaned = clean(content);
-    const parsed = pageContentSchema.safeParse(cleaned);
-    if (!parsed.success) {
-      setState("invalid");
+  const draft = useDraft<PageContent>({
+    slug: page.slug,
+    initial: page.draft,
+    savedAt: page.draftUpdatedAt,
+    canEdit,
+    prepare: clean,
+    check: (value) => {
+      const parsed = pageContentSchema.safeParse(value);
+      if (parsed.success) return null;
       const issue = parsed.error.issues[0];
       const idx = typeof issue?.path[1] === "number" ? issue.path[1] : -1;
-      const where = issue?.path[0] === "sections" && idx >= 0 && content.sections[idx] ? SECTION_LIBRARY[content.sections[idx].type].label : "Page settings";
-      setMessage(`${where}: fill in the required fields to save.`);
-      return;
-    }
-    setState("saving");
-    const res = await saveDraftAction(page.slug, parsed.data, expected);
-    if (!res.ok) {
-      setState(res.conflict ? "conflict" : "error");
-      setMessage(res.error);
-      return;
-    }
-    setExpected(res.updatedAt);
-    setSavedJson(stable(content));
-    setState("saved");
-    setMessage(null);
-    setReloadKey((k) => k + 1);
-  }, [content, expected, page.slug]);
+      const where = issue?.path[0] === "sections" && idx >= 0 && value.sections[idx] ? SECTION_LIBRARY[value.sections[idx].type].label : "Page settings";
+      return `${where}: fill in the required fields to save.`;
+    },
+  });
+  const content = draft.value;
+  const setContent = draft.setValue;
+  const [selected, setSelected] = useState<string>(page.draft.sections[0]?.id ?? SEO);
+  const [device, setDevice] = useState<Device>("desktop");
+  const [tab, setTab] = useState<"outline" | "edit" | "preview">("outline");
+  const [confirmRemove, setConfirmRemove] = useState(false);
 
-  useEffect(() => {
-    if (!canEdit || !dirty || state === "conflict" || state === "saving") return;
-    setState((s) => (s === "invalid" || s === "error" ? s : "unsaved"));
-    const t = setTimeout(() => void save(), 1200);
-    return () => clearTimeout(t);
-    // Re-checked after each save finishes, so edits made while saving are saved too.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [json, canEdit, state]);
-
-  // Unsaved-changes warning when leaving the page.
-  useEffect(() => {
-    if (!dirty) return;
-    const warn = (e: BeforeUnloadEvent) => { e.preventDefault(); };
-    window.addEventListener("beforeunload", warn);
-    return () => window.removeEventListener("beforeunload", warn);
-  }, [dirty]);
+  const ctx: FormContext = { media, courses, canEdit };
+  const differsFromLive = page.published ? stable(clean(content)) !== stable(page.published) : true;
+  const hasNotes = PLACEHOLDER.test(JSON.stringify(content));
 
   // ---- section operations
   const update = (s: Section) => setContent((c) => ({ ...c, sections: c.sections.map((x) => (x.id === s.id ? s : x)) }));
@@ -225,7 +172,7 @@ export function WebsiteEditor({
     setContent((c) => {
       const at = c.sections.findIndex((x) => x.id === selected);
       const sections = [...c.sections];
-      sections.splice(type === "hero" ? 0 : at >= 0 ? at + 1 : sections.length, 0, s);
+      sections.splice(type === "hero" || type === "intro" ? 0 : at >= 0 ? at + 1 : sections.length, 0, s);
       return { ...c, sections };
     });
     setSelected(s.id);
@@ -249,131 +196,47 @@ export function WebsiteEditor({
   }
 
   const current = content.sections.find((s) => s.id === selected);
-  const hasHero = content.sections.some((s) => s.type === "hero");
-
-  // ---- publish / history
-  function publish() {
-    setDialogError(null);
-    start(async () => {
-      const res = await publishPageAction(page.slug, note);
-      if (!res.ok) return setDialogError(res.error);
-      publishRef.current?.close();
-      setNote("");
-      setNotice(`Published as version ${res.version}. The live ${pageLabel.toLowerCase()} now shows these changes.`);
-      router.refresh();
-    });
-  }
-
-  function restore(versionId: string, versionNo: number) {
-    setDialogError(null);
-    start(async () => {
-      const res = await restoreVersionAction(page.slug, versionId);
-      if (!res.ok) return setDialogError(res.error);
-      sessionStorageNotice(`Version ${versionNo} is back in your draft. Publish it to make it live.`);
-      window.location.reload();
-    });
-  }
-
-  function discard() {
-    setDialogError(null);
-    start(async () => {
-      const res = await discardDraftAction(page.slug);
-      if (!res.ok) return setDialogError(res.error);
-      sessionStorageNotice("Unpublished changes discarded. The draft now matches the live page.");
-      window.location.reload();
-    });
-  }
-
-  useEffect(() => {
-    try {
-      const n = sessionStorage.getItem("cms-notice");
-      if (n) { setNotice(n); sessionStorage.removeItem("cms-notice"); }
-    } catch { /* storage unavailable */ }
-  }, []);
-
-  // ---- status line
-  const status = (() => {
-    switch (state) {
-      case "saving": return { icon: <Loader2 className="size-4 animate-spin" />, text: "Saving…", tone: "text-ink-muted" };
-      case "unsaved": return { icon: <span className="size-2 rounded-full bg-warning" />, text: "Unsaved changes", tone: "text-ink-muted" };
-      case "invalid": return { icon: <TriangleAlert className="size-4" />, text: "Not saved", tone: "text-warning-ink" };
-      case "error": return { icon: <TriangleAlert className="size-4" />, text: "Not saved", tone: "text-danger-ink" };
-      case "conflict": return { icon: <TriangleAlert className="size-4" />, text: "Changed elsewhere", tone: "text-danger-ink" };
-      default: return { icon: <Check className="size-4" />, text: "Draft saved", tone: "text-success-ink" };
-    }
-  })();
-
-  const versions = page.versions;
+  const used = new Set(content.sections.map((s) => s.type));
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Top bar */}
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-3 rounded-card border border-line bg-surface px-4 py-3">
-        <div className="mr-auto min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <h2 className="text-lg font-bold text-ink">{pageLabel}</h2>
-            <span className={cn("rounded-full px-2.5 py-0.5 text-xs font-semibold", !page.published ? "bg-block-lemon text-ink" : differsFromLive ? "bg-block-sky text-ink" : "bg-block-mint text-ink")}>
-              {!page.published ? "Not published yet" : differsFromLive ? "Draft differs from live" : "Live matches draft"}
-            </span>
+      <DraftToolbar
+        slug={page.slug}
+        label={pageLabel}
+        publicPath={publicPath}
+        previewHref={`/cms-preview/${page.slug}`}
+        draft={draft}
+        differsFromLive={differsFromLive}
+        publishedAt={page.publishedAt}
+        publishedBy={page.publishedBy}
+        versions={page.versions}
+        canEdit={canEdit}
+        canPublish={canPublish}
+        extra={
+          <div role="group" aria-label="Preview size" className="hidden items-center rounded-full border border-line p-0.5 lg:flex">
+            {(Object.keys(DEVICES) as Device[]).map((d) => {
+              const { Icon, label } = DEVICES[d];
+              return (
+                <button
+                  key={d}
+                  type="button"
+                  aria-pressed={device === d}
+                  title={label}
+                  onClick={() => setDevice(d)}
+                  className={cn("inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-sm font-semibold", device === d ? "bg-ink text-white" : "text-ink hover:bg-ink/5")}
+                >
+                  <Icon className="size-4" aria-hidden="true" /> <span className="sr-only xl:not-sr-only">{label}</span>
+                </button>
+              );
+            })}
           </div>
-          <p role="status" className={cn("mt-0.5 flex items-center gap-1.5 text-sm", status.tone)}>
-            {status.icon} {status.text}
-            {page.publishedAt && <span className="text-ink-muted"> · Last published {dateTime.format(new Date(page.publishedAt))}{page.publishedBy ? ` by ${page.publishedBy}` : ""}</span>}
-          </p>
-        </div>
+        }
+      />
 
-        <div role="group" aria-label="Preview size" className="hidden items-center rounded-full border border-line p-0.5 lg:flex">
-          {(Object.keys(DEVICES) as Device[]).map((d) => {
-            const { Icon, label } = DEVICES[d];
-            return (
-              <button
-                key={d}
-                type="button"
-                aria-pressed={device === d}
-                title={label}
-                onClick={() => setDevice(d)}
-                className={cn("inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-sm font-semibold", device === d ? "bg-ink text-white" : "text-ink hover:bg-ink/5")}
-              >
-                <Icon className="size-4" aria-hidden="true" /> <span className="sr-only xl:not-sr-only">{label}</span>
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <a href={`/preview/${page.slug}`} target="_blank" rel="noopener" className="inline-flex h-9 items-center gap-1.5 rounded-full px-3 text-sm font-semibold text-ink hover:bg-ink/5">
-            <ExternalLink className="size-4" aria-hidden="true" /> Preview
-          </a>
-          <Button variant="secondary" size="sm" onClick={() => { setDialogError(null); historyRef.current?.showModal(); }}>
-            <History className="size-4" aria-hidden="true" /> History
-          </Button>
-          {canPublish && (
-            <Button
-              size="sm"
-              disabled={dirty || state !== "saved" || !differsFromLive}
-              title={dirty ? "Wait for the draft to save" : !differsFromLive ? "Nothing new to publish" : undefined}
-              onClick={() => { setDialogError(null); publishRef.current?.showModal(); }}
-            >
-              Publish
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {!canEdit && <Alert tone="info">You can view this page and its history. Ask the Owner for “Edit website drafts” to make changes.</Alert>}
-      {canEdit && !canPublish && <Alert tone="info">Your changes are saved as a draft. Someone with “Publish website changes” makes them live.</Alert>}
-      {message && (state === "invalid" || state === "error" || state === "conflict") && (
-        <Alert tone={state === "invalid" ? "warning" : "danger"}>
-          {message}
-          {state === "conflict" && <> <button type="button" onClick={() => window.location.reload()} className="font-semibold underline">Reload</button></>}
-          {state === "error" && <> <button type="button" onClick={() => void save()} className="font-semibold underline">Try again</button></>}
-        </Alert>
-      )}
-      {notice && (
-        <div role="status" className="flex items-start justify-between gap-3 rounded-tile bg-block-mint px-4 py-3 text-sm text-ink">
-          {notice}
-          <button type="button" aria-label="Dismiss" onClick={() => setNotice(null)}><X className="size-4" /></button>
-        </div>
+      {hasNotes && (
+        <p className="rounded-tile bg-block-lemon px-4 py-3 text-sm text-ink">
+          This page still has starter notes in [square brackets]. Replace them with your own words before you publish.
+        </p>
       )}
 
       {/* Mobile: one panel at a time */}
@@ -434,9 +297,9 @@ export function WebsiteEditor({
                 <Plus className="size-4" aria-hidden="true" /> Add section
               </summary>
               <ul className="flex max-h-72 flex-col gap-1 overflow-y-auto border-t border-line p-1.5">
-                {(Object.keys(SECTION_LIBRARY) as SectionType[]).map((type) => {
+                {sectionTypes.map((type) => {
                   const lib = SECTION_LIBRARY[type];
-                  const blocked = lib.single && type === "hero" && hasHero;
+                  const blocked = Boolean(lib.single && used.has(type));
                   return (
                     <li key={type}>
                       <button
@@ -465,7 +328,7 @@ export function WebsiteEditor({
               </button>
             ))}
           </div>
-          <Preview slug={page.slug} device={device} reloadKey={reloadKey} />
+          <Preview slug={page.slug} device={device} reloadKey={draft.reloadKey} />
         </section>
 
         {/* Properties */}
@@ -499,70 +362,6 @@ export function WebsiteEditor({
         </aside>
       </div>
 
-      {/* Publish */}
-      <dialog ref={publishRef} aria-labelledby={publishTitle} className="m-auto w-[min(480px,calc(100vw-2rem))] rounded-card border border-line bg-surface p-0 text-ink shadow-float backdrop:bg-ink/40">
-        <div className="flex flex-col gap-4 p-6">
-          <h2 id={publishTitle} className="text-lg font-bold">Publish the {pageLabel.toLowerCase()}?</h2>
-          <p className="text-sm text-ink-muted">
-            Everyone visiting <span className="font-semibold text-ink">{publicPath}</span> will see the draft right away. You can restore an earlier version from History if needed.
-          </p>
-          <label className="flex flex-col gap-1.5 text-sm font-semibold">
-            What changed? (optional)
-            <input value={note} maxLength={200} onChange={(e) => setNote(e.target.value)} placeholder="New hero for the July launch" className="h-10 rounded-control border border-line px-3 text-sm font-normal focus-visible:border-brand focus-visible:outline-2 focus-visible:outline-brand/30" />
-          </label>
-          {dialogError && <Alert tone="danger">{dialogError}</Alert>}
-          <div className="flex justify-end gap-2">
-            <Button variant="tertiary" onClick={() => publishRef.current?.close()}>Cancel</Button>
-            <Button onClick={publish} loading={pending} disabled={pending}>Publish now</Button>
-          </div>
-        </div>
-      </dialog>
-
-      {/* History */}
-      <dialog ref={historyRef} aria-labelledby={historyTitle} className="m-auto w-[min(560px,calc(100vw-2rem))] rounded-card border border-line bg-surface p-0 text-ink shadow-float backdrop:bg-ink/40">
-        <div className="flex max-h-[80dvh] flex-col">
-          <div className="flex items-center justify-between border-b border-line px-6 py-4">
-            <h2 id={historyTitle} className="text-lg font-bold">Version history</h2>
-            <button type="button" aria-label="Close" onClick={() => historyRef.current?.close()} className="inline-flex size-9 items-center justify-center rounded-full hover:bg-ink/5"><X className="size-5" /></button>
-          </div>
-          <div className="flex flex-col gap-3 overflow-y-auto p-6">
-            {dialogError && <Alert tone="danger">{dialogError}</Alert>}
-            {versions.length === 0 ? (
-              <p className="text-sm text-ink-muted">Nothing published yet. Each publish is kept here so you can go back.</p>
-            ) : (
-              <ol className="flex flex-col divide-y divide-line">
-                {versions.map((v, i) => (
-                  <li key={v.id} className="flex items-center justify-between gap-4 py-3">
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold text-ink">
-                        Version {v.versionNo}{i === 0 && <span className="ml-2 rounded-full bg-block-mint px-2 py-0.5 text-xs">Live</span>}
-                      </p>
-                      <p className="text-xs text-ink-muted">{dateTime.format(new Date(v.publishedAt))}{v.publishedBy ? ` · ${v.publishedBy}` : ""}</p>
-                      {v.note && <p className="mt-0.5 truncate text-sm text-ink">{v.note}</p>}
-                    </div>
-                    {canEdit && (
-                      <Button size="sm" variant="secondary" disabled={pending} onClick={() => restore(v.id, v.versionNo)}>
-                        Restore to draft
-                      </Button>
-                    )}
-                  </li>
-                ))}
-              </ol>
-            )}
-            {canEdit && page.published && (
-              <div className="mt-2 rounded-tile bg-canvas p-4">
-                <p className="text-sm font-semibold text-ink">Discard unpublished changes</p>
-                <p className="mt-1 text-sm text-ink-muted">Resets the draft to what's live now. This can't be undone.</p>
-                <Button className="mt-3" size="sm" variant="destructive" disabled={pending} onClick={discard}>Discard changes</Button>
-              </div>
-            )}
-          </div>
-        </div>
-      </dialog>
     </div>
   );
-}
-
-function sessionStorageNotice(text: string) {
-  try { sessionStorage.setItem("cms-notice", text); } catch { /* storage unavailable */ }
 }

@@ -10,6 +10,9 @@ export const SECTION_LIBRARY: Record<SectionType, { label: string; description: 
   testimonials: { label: "Testimonials", description: "Real quotes from learners." },
   faq: { label: "FAQ", description: "Questions and answers that open on tap." },
   cta: { label: "Call to action", description: "A closing message with one button." },
+  intro: { label: "Page intro", description: "The page title and a short intro on a colour block.", single: true },
+  text: { label: "Text", description: "Headings, paragraphs, lists and links." },
+  contact: { label: "Contact details", description: "Email, phone, WhatsApp, address and hours from Menus & footer." },
 };
 
 export function newSectionId(type: SectionType): string {
@@ -40,6 +43,9 @@ export function createSection<T extends SectionType>(type: T): SectionOf<T> {
     testimonials: { title: "What learners say", items: [] },
     faq: { title: "Questions people ask", items: [{ question: "How do I pay?", answer: "By card through PayHere, or by bank transfer." }] },
     cta: { headline: "Ready to start?", text: "", cta: { label: "Browse courses", href: "/courses" } },
+    intro: { title: "Page title", text: "", tone: "lilac" },
+    text: { title: "", body: "Write here." },
+    contact: { title: "Get in touch", text: "", showEmail: true, showPhone: true, showWhatsapp: true, showAddress: true, showHours: true },
   };
   return { id, type, enabled: true, data: blank[type] } as SectionOf<T>;
 }

@@ -1,8 +1,10 @@
 import "server-only";
 import { cache } from "react";
+import { createPublicClient } from "@/lib/supabase/public";
 import { createClient } from "@/lib/supabase/server";
 import { DEFAULT_HOME } from "@/lib/cms/defaults";
-import { readPageContent, type PageContent } from "@/lib/cms/schema";
+import { DEFAULT_SITE, SITE_SLUG } from "@/lib/cms/pages";
+import { readPageContent, siteSettingsSchema, type PageContent, type SiteSettings } from "@/lib/cms/schema";
 
 export type MediaAsset = {
   id: string;
@@ -28,7 +30,7 @@ const withUrl = (m: MediaRow): MediaAsset => ({ ...m, url: siteMediaUrl(m.storag
 
 /** The live (published) content of a page, or null if it was never published. */
 export const getPublishedPage = cache(async (slug: string): Promise<PageContent | null> => {
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   const { data } = await supabase.from("cms_pages").select("published").eq("slug", slug).maybeSingle();
   return readPageContent((data as { published: unknown } | null)?.published);
 });
@@ -38,9 +40,47 @@ export async function getHomeContent(): Promise<PageContent> {
   return (await getPublishedPage("home")) ?? DEFAULT_HOME;
 }
 
+/** Menus, footer and contact details as published, else today's built-in values. */
+export function readSiteSettings(raw: unknown): SiteSettings | null {
+  if (!raw || typeof raw !== "object") return null;
+  const parsed = siteSettingsSchema.safeParse(raw);
+  return parsed.success ? parsed.data : null;
+}
+
+export const getSiteSettings = cache(async (): Promise<SiteSettings> => {
+  const supabase = createPublicClient();
+  const { data } = await supabase.from("cms_pages").select("published").eq("slug", SITE_SLUG).maybeSingle();
+  return readSiteSettings((data as { published: unknown } | null)?.published) ?? DEFAULT_SITE;
+});
+
+/** Draft menus and footer, for the editor preview. Null when the caller can't read drafts. */
+export const getSiteSettingsDraft = cache(async (): Promise<SiteSettings | null> => {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("cms_page_for_editor", { p_slug: SITE_SLUG });
+  if (error) return null;
+  const d = data as { draft?: unknown } | null;
+  return (d && readSiteSettings(d.draft)) ?? DEFAULT_SITE;
+});
+
+/** Raw draft/published JSON for the settings editor (not page-shaped). */
+export async function getSiteForEditor() {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("cms_page_for_editor", { p_slug: SITE_SLUG });
+  if (error) throw new Error("cms_page_for_editor failed");
+  const d = (data ?? null) as Record<string, unknown> | null;
+  return {
+    draft: (d && readSiteSettings(d.draft)) ?? DEFAULT_SITE,
+    published: d ? readSiteSettings(d.published) : null,
+    draftUpdatedAt: (d?.draftUpdatedAt as string | null) ?? null,
+    publishedAt: (d?.publishedAt as string | null) ?? null,
+    publishedBy: (d?.publishedBy as string | null) ?? null,
+    versions: Array.isArray(d?.versions) ? (d!.versions as PageVersion[]) : [],
+  };
+}
+
 export async function getMediaMap(ids: string[]): Promise<Map<string, MediaAsset>> {
   if (ids.length === 0) return new Map();
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   const { data } = await supabase.from("media_assets").select(MEDIA_COLUMNS).in("id", ids);
   return new Map(((data ?? []) as MediaRow[]).map((m) => [m.id, withUrl(m)]));
 }

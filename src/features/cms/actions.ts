@@ -1,40 +1,53 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { pageContentSchema, type PageContent } from "@/lib/cms/schema";
+import { PAGE_DEFS, SITE_SLUG } from "@/lib/cms/pages";
+import { pageContentSchema, siteSettingsSchema } from "@/lib/cms/schema";
 import { requirePermission } from "@/lib/dal/session";
 import { createClient } from "@/lib/supabase/server";
 import { revalidateWorkspaces } from "@/lib/workspace";
 
-/** Pages the editor can change, with the public path each one updates. */
-const PAGES: Record<string, { title: string; path: string }> = {
-  home: { title: "Home", path: "/" },
-};
-
 type Fail = { ok: false; error: string; conflict?: boolean };
 
-function page(slug: string) {
-  const p = PAGES[slug];
-  if (!p) throw new Error("Unknown page");
-  return p;
+/** Pages the editor can change: the info pages plus "site" (menus and footer). */
+function page(slug: string): { title: string; path: string } {
+  if (slug === SITE_SLUG) return { title: "Menus & footer", path: "/" };
+  const def = PAGE_DEFS[slug];
+  if (!def) throw new Error("Unknown page");
+  return { title: def.label, path: def.path };
 }
 
-function refresh(slug: string) {
-  revalidatePath(`/preview/${slug}`);
+function refresh() {
+  revalidatePath("/cms-preview", "layout");
   revalidateWorkspaces("/website");
+}
+
+/** Validates content for the page it's going to. */
+type Checked =
+  | { success: true; data: unknown }
+  | { success: false; error: { issues: { path: PropertyKey[]; message: string }[] } };
+
+function validate(slug: string, content: unknown): Checked {
+  if (slug === SITE_SLUG) return siteSettingsSchema.safeParse(content);
+  const parsed = pageContentSchema.safeParse(content);
+  if (!parsed.success) return parsed;
+  const allowed = new Set(PAGE_DEFS[slug].sections);
+  const stray = parsed.data.sections.find((s) => !allowed.has(s.type));
+  if (stray) return { success: false, error: { issues: [{ path: ["sections"], message: `${stray.type} sections can't be used on this page` }] } };
+  return parsed;
 }
 
 export async function saveDraftAction(
   slug: string,
-  content: PageContent,
+  content: unknown,
   expected: string | null,
 ): Promise<{ ok: true; updatedAt: string } | Fail> {
   await requirePermission("cms.edit_draft");
   const p = page(slug);
-  const parsed = pageContentSchema.safeParse(content);
+  const parsed = validate(slug, content);
   if (!parsed.success) {
     const issue = parsed.error.issues[0];
-    return { ok: false, error: `Check the highlighted fields (${issue?.path.join(" › ") || "page"}): ${issue?.message ?? "invalid"}.` };
+    return { ok: false, error: `Check the highlighted fields (${issue?.path.map(String).join(" › ") || "page"}): ${issue?.message ?? "invalid"}.` };
   }
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("cms_save_draft", {
@@ -54,8 +67,10 @@ export async function publishPageAction(slug: string, note: string): Promise<{ o
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("cms_publish", { p_slug: slug, p_note: note.slice(0, 200) || null });
   if (error) return { ok: false, error: error.code === "P0002" ? "Save the page before publishing." : "The page couldn't be published. Please try again." };
-  revalidatePath(p.path);
-  refresh(slug);
+  // Menus and footer appear on every page, including ones built ahead of time.
+  if (slug === SITE_SLUG) revalidatePath("/", "layout");
+  else revalidatePath(p.path);
+  refresh();
   return { ok: true, version: data as number };
 }
 
@@ -63,9 +78,12 @@ export async function restoreVersionAction(slug: string, versionId: string): Pro
   await requirePermission("cms.edit_draft");
   page(slug);
   const supabase = await createClient();
+  // The version must belong to this page.
+  const { data: v } = await supabase.from("cms_page_versions").select("page:cms_pages!inner(slug)").eq("id", versionId).maybeSingle();
+  if ((v as { page?: { slug: string } } | null)?.page?.slug !== slug) return { ok: false, error: "That version belongs to another page." };
   const { error } = await supabase.rpc("cms_restore_version", { p_version_id: versionId });
   if (error) return { ok: false, error: "That version couldn't be restored." };
-  refresh(slug);
+  refresh();
   return { ok: true };
 }
 
@@ -75,7 +93,7 @@ export async function discardDraftAction(slug: string): Promise<{ ok: true } | F
   const supabase = await createClient();
   const { error } = await supabase.rpc("cms_discard_draft", { p_slug: slug });
   if (error) return { ok: false, error: error.code === "P0002" ? "Nothing has been published yet." : "The changes couldn't be discarded." };
-  refresh(slug);
+  refresh();
   return { ok: true };
 }
 

@@ -1,13 +1,14 @@
 import Link from "next/link";
 import type { CSSProperties } from "react";
 import {
-  ArrowRight, BadgeCheck, CheckCircle2, Clock, CreditCard, Globe, MessageCircle, Pause, PlayCircle,
+  ArrowRight, BadgeCheck, CheckCircle2, Clock, CreditCard, Globe, Mail, MapPin, MessageCircle, Pause, Phone, PlayCircle,
   Search, ShieldCheck, Smartphone, Star, Users, type LucideIcon,
 } from "lucide-react";
 import { brand } from "@/brand";
 import { ButtonLink } from "@/components/ui/button";
 import { CourseCard } from "@/features/courses/components/course-card";
-import { imageIdsIn, safeHref, type PageContent, type SectionOf } from "@/lib/cms/schema";
+import { RichText } from "@/lib/cms/rich-text";
+import { imageIdsIn, safeHref, type PageContent, type SectionOf, type SiteSettings } from "@/lib/cms/schema";
 import { getMediaMap, type MediaAsset } from "@/lib/dal/cms";
 import { listCategories, listPublishedCourses, type CatalogueCourse } from "@/lib/dal/courses";
 import { cn } from "@/lib/utils";
@@ -351,10 +352,84 @@ function Cta({ s }: { s: SectionOf<"cta"> }) {
   );
 }
 
+// ------------------------------------------------------------------ intro
+
+const TONE_BG: Record<SectionOf<"intro">["data"]["tone"], string> = {
+  lilac: "bg-block-lilac", lemon: "bg-block-lemon", mint: "bg-block-mint", sky: "bg-block-sky", pink: "bg-block-pink", cream: "bg-block-cream",
+};
+
+/** Title block for info pages. Carries the page's h1. */
+function Intro({ s, isFirst }: { s: SectionOf<"intro">; isFirst: boolean }) {
+  const Heading = isFirst ? "h1" : "h2";
+  return (
+    <section id={s.id} className="mx-auto max-w-[1280px] scroll-mt-24 px-4 pt-8 sm:px-6 md:pt-12 lg:px-8">
+      <div className={cn("rounded-card px-8 py-12 text-ink sm:px-12 sm:py-16 lg:px-16 lg:py-20", TONE_BG[s.data.tone])}>
+        <Heading className="type-display-lg max-w-[18ch]">{s.data.title}</Heading>
+        {s.data.text && <p className="mt-5 max-w-[56ch] text-lg sm:text-xl">{s.data.text}</p>}
+      </div>
+    </section>
+  );
+}
+
+// ------------------------------------------------------------------ text
+
+function TextBlock({ s }: { s: SectionOf<"text"> }) {
+  return (
+    <section id={s.id} aria-labelledby={s.data.title ? `${s.id}-title` : undefined} className="mx-auto max-w-[1280px] scroll-mt-24 px-4 pt-16 sm:px-6 lg:px-8 lg:pt-20">
+      <div className={cn("grid gap-6", s.data.title && "lg:grid-cols-[0.8fr_1.2fr] lg:gap-16")}>
+        {s.data.title && <h2 id={`${s.id}-title`} className="type-display-md max-w-[16ch] text-ink">{s.data.title}</h2>}
+        <div className="max-w-[68ch]"><RichText text={s.data.body} /></div>
+      </div>
+    </section>
+  );
+}
+
+// ------------------------------------------------------------------ contact
+
+function ContactBlock({ s, site }: { s: SectionOf<"contact">; site: SiteSettings }) {
+  const c = site.contact;
+  const d = s.data;
+  const wa = c.whatsapp.replace(/[^\d]/g, "");
+  const items = [
+    d.showEmail && c.email && { Icon: Mail, label: "Email", value: c.email, href: `mailto:${c.email}`, tone: "bg-block-lilac" },
+    d.showWhatsapp && wa && { Icon: MessageCircle, label: "WhatsApp", value: c.whatsapp, href: `https://wa.me/${wa}`, tone: "bg-block-mint" },
+    d.showPhone && c.phone && { Icon: Phone, label: "Phone", value: c.phone, href: `tel:${c.phone.replace(/[^\d+]/g, "")}`, tone: "bg-block-lemon" },
+    d.showAddress && c.address && { Icon: MapPin, label: "Address", value: c.address, href: null, tone: "bg-block-sky" },
+    d.showHours && c.hours && { Icon: Clock, label: "Hours", value: c.hours, href: null, tone: "bg-block-pink" },
+  ].filter(Boolean) as { Icon: LucideIcon; label: string; value: string; href: string | null; tone: string }[];
+  return (
+    <section id={s.id} aria-labelledby={`${s.id}-title`} className="mx-auto max-w-[1280px] scroll-mt-24 px-4 pt-16 sm:px-6 lg:px-8 lg:pt-20">
+      <h2 id={`${s.id}-title`} className="type-display-md text-ink">{d.title}</h2>
+      {d.text && <p className="mt-3 max-w-[56ch] text-lg text-ink-muted">{d.text}</p>}
+      {items.length === 0 ? (
+        <p className="mt-6 text-ink-muted">Contact details will appear here soon.</p>
+      ) : (
+        <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {items.map(({ Icon, label, value, href, tone }) => (
+            <li key={label} className={cn("flex flex-col gap-6 rounded-card p-7 text-ink", tone)}>
+              <Icon className="size-7" aria-hidden="true" />
+              <div>
+                <p className="type-label text-ink/70">{label}</p>
+                {href ? (
+                  <a href={href} {...(href.startsWith("https:") ? { target: "_blank", rel: "noopener noreferrer" } : {})} className="mt-1 block break-words text-lg font-bold underline-offset-4 hover:underline">
+                    {value}
+                  </a>
+                ) : (
+                  <p className="mt-1 whitespace-pre-line text-lg font-bold">{value}</p>
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
 // ------------------------------------------------------------------ page
 
 /** Renders a page's enabled sections, loading the courses, categories and images they need. */
-export async function PageSections({ content }: { content: PageContent }) {
+export async function PageSections({ content, site, fallbackTitle }: { content: PageContent; site: SiteSettings; fallbackTitle?: string }) {
   const sections = content.sections.filter((s) => s.enabled);
 
   const needsCategories = sections.some((s) => s.type === "topics" && s.data.source === "categories");
@@ -375,12 +450,12 @@ export async function PageSections({ content }: { content: PageContent }) {
     ),
   ]);
   const coursesFor = new Map(courseSections.map((s, i) => [s.id, courseLists[i]]));
-  const hasHero = sections.some((s) => s.type === "hero");
+  const hasH1 = sections[0]?.type === "intro" || sections.some((s) => s.type === "hero");
 
   return (
     <>
-      {!hasHero && <h1 className="sr-only">{brand.name}</h1>}
-      {sections.map((s) => {
+      {!hasH1 && <h1 className="sr-only">{fallbackTitle ?? brand.name}</h1>}
+      {sections.map((s, index) => {
         switch (s.type) {
           case "hero":
             return <Hero key={s.id} s={s} media={media} />;
@@ -403,6 +478,12 @@ export async function PageSections({ content }: { content: PageContent }) {
             return <Faq key={s.id} s={s} />;
           case "cta":
             return <Cta key={s.id} s={s} />;
+          case "intro":
+            return <Intro key={s.id} s={s} isFirst={index === 0} />;
+          case "text":
+            return <TextBlock key={s.id} s={s} />;
+          case "contact":
+            return <ContactBlock key={s.id} s={s} site={site} />;
         }
       })}
       <div className="pb-20 lg:pb-24" />

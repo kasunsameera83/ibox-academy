@@ -106,6 +106,30 @@ const ctaData = z.object({
   cta: link.nullable().default(null),
 });
 
+export const TONES = ["lilac", "lemon", "mint", "sky", "pink", "cream"] as const;
+
+const introData = z.object({
+  title: required(LIMITS.headline),
+  text: text(LIMITS.subheading),
+  tone: z.enum(TONES).default("lilac"),
+});
+
+/** Plain text with light formatting (see lib/cms/rich-text.tsx). Never HTML. */
+const textData = z.object({
+  title: text(LIMITS.title),
+  body: required(12000),
+});
+
+const contactData = z.object({
+  title: required(LIMITS.title),
+  text: text(LIMITS.body),
+  showEmail: z.boolean().default(true),
+  showPhone: z.boolean().default(true),
+  showWhatsapp: z.boolean().default(true),
+  showAddress: z.boolean().default(true),
+  showHours: z.boolean().default(true),
+});
+
 const base = { id: z.string().regex(/^[a-z0-9-]{1,40}$/), enabled: z.boolean().default(true) };
 
 export const sectionSchema = z.discriminatedUnion("type", [
@@ -117,6 +141,9 @@ export const sectionSchema = z.discriminatedUnion("type", [
   z.object({ ...base, type: z.literal("testimonials"), data: testimonialsData }),
   z.object({ ...base, type: z.literal("faq"), data: faqData }),
   z.object({ ...base, type: z.literal("cta"), data: ctaData }),
+  z.object({ ...base, type: z.literal("intro"), data: introData }),
+  z.object({ ...base, type: z.literal("text"), data: textData }),
+  z.object({ ...base, type: z.literal("contact"), data: contactData }),
 ]);
 
 export const seoSchema = z.object({
@@ -164,3 +191,40 @@ export function imageIdsIn(content: PageContent): string[] {
   }
   return [...ids];
 }
+
+// ---------------------------------------------------------------- site settings
+
+const navLink = z.object({ label: required(30), href });
+const socialUrl = z
+  .string()
+  .trim()
+  .max(200)
+  .refine((v) => v === "" || /^https:\/\/[^\s]+$/i.test(v), "Use a full https:// link");
+
+/** Menus, footer, contact details and wording shared by every public page. */
+export const siteSettingsSchema = z.object({
+  tagline: required(80),
+  description: required(200),
+  announcement: z.object({
+    enabled: z.boolean().default(false),
+    text: text(120),
+    link: navLink.nullable().default(null),
+    tone: z.enum(TONES).default("lemon"),
+  }),
+  headerLinks: z.array(navLink).max(6),
+  footer: z.object({
+    columns: z.array(z.object({ title: required(30), links: z.array(navLink).min(1).max(6) })).max(4),
+  }),
+  contact: z.object({
+    email: z.union([z.literal(""), z.email().max(120)]),
+    phone: text(30),
+    whatsapp: z.string().trim().max(20).refine((v) => v === "" || /^\+?\d{7,15}$/.test(v.replace(/[\s-]/g, "")), "Digits only, with country code, e.g. +94771234567"),
+    address: text(200),
+    hours: text(120),
+  }),
+  social: z.object({
+    facebook: socialUrl, instagram: socialUrl, youtube: socialUrl, tiktok: socialUrl, linkedin: socialUrl,
+  }),
+});
+
+export type SiteSettings = z.infer<typeof siteSettingsSchema>;

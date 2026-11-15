@@ -1,11 +1,12 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { BadgeCheck, Clock, CreditCard } from "lucide-react";
-import { brand } from "@/brand";
 import { Logo } from "@/components/brand/logo";
+import { getSiteSettings } from "@/lib/dal/cms";
 
 /** Sign-in, sign-up and account recovery: form on white, brand colour block beside it. */
-export default function AuthLayout({ children }: { children: ReactNode }) {
+export default async function AuthLayout({ children }: { children: ReactNode }) {
+  const site = await getSiteSettings();
   return (
     <div className="grid min-h-dvh bg-surface lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
       <div className="flex flex-col">
@@ -36,7 +37,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             <BadgeCheck className="size-5" />
             <span className="font-bold leading-tight">Certificates anyone can verify</span>
           </div>
-          <p className="type-display-lg relative max-w-[12ch] text-ink">{brand.tagline}</p>
+          <p className="type-display-lg relative max-w-[12ch] text-ink">{site.tagline}</p>
         </div>
       </aside>
     </div>

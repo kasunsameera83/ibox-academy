@@ -2,7 +2,8 @@
 
 import { useId, useState } from "react";
 import { ArrowDown, ArrowUp, X } from "lucide-react";
-import { FEATURE_ICONS, LIMITS, type Section, type SectionOf, type Seo } from "@/lib/cms/schema";
+import { RICH_TEXT_HELP } from "@/lib/cms/rich-text";
+import { FEATURE_ICONS, LIMITS, TONES, type Section, type SectionOf, type Seo } from "@/lib/cms/schema";
 import type { CourseOption, MediaAsset } from "@/lib/dal/cms";
 import { AreaField, IconBtn, LinesField, LinkField, move, Repeater, SelectField, TextField, Toggle } from "./fields";
 import { MediaPicker } from "./media-picker";
@@ -277,6 +278,55 @@ function CtaForm({ s, set, ctx }: FormProps<"cta">) {
   );
 }
 
+/** Starter notes look like "[Write your refund rule here]" (but not [link](/path)). */
+export const PLACEHOLDER = /\[[^\]]*(replace|write|add|have (this|these) checked|last updated)[^\]]*\](?!\()/i;
+
+const TONE_LABELS: Record<(typeof TONES)[number], string> = { lilac: "Lilac", lemon: "Lemon", mint: "Mint", sky: "Sky", pink: "Pink", cream: "Cream" };
+
+function IntroForm({ s, set, ctx }: FormProps<"intro">) {
+  const d = s.data;
+  const off = !ctx.canEdit;
+  return (
+    <>
+      <TextField label="Page title" value={d.title} max={LIMITS.headline} required disabled={off} onChange={(v) => set({ ...d, title: v })} hint="The page's main heading when this section is first." />
+      <AreaField label="Intro" value={d.text} max={LIMITS.subheading} disabled={off} onChange={(v) => set({ ...d, text: v })} />
+      <SelectField label="Colour" value={d.tone} disabled={off} options={TONES.map((t) => ({ value: t, label: TONE_LABELS[t] }))} onChange={(v) => set({ ...d, tone: v })} />
+    </>
+  );
+}
+
+function TextForm({ s, set, ctx }: FormProps<"text">) {
+  const d = s.data;
+  const off = !ctx.canEdit;
+  const hasPlaceholder = PLACEHOLDER.test(d.body);
+  return (
+    <>
+      <TextField label="Heading" value={d.title} max={LIMITS.title} disabled={off} onChange={(v) => set({ ...d, title: v })} hint="Optional. Shown beside the text on wide screens." />
+      <AreaField label="Text" value={d.body} max={12000} rows={14} disabled={off} onChange={(v) => set({ ...d, body: v })} hint={RICH_TEXT_HELP} />
+      {hasPlaceholder && (
+        <p className="rounded-tile bg-block-lemon px-3 py-2 text-sm text-ink">This text still has [notes in square brackets]. Replace them before publishing.</p>
+      )}
+    </>
+  );
+}
+
+function ContactForm({ s, set, ctx }: FormProps<"contact">) {
+  const d = s.data;
+  const off = !ctx.canEdit;
+  return (
+    <>
+      <TextField label="Title" value={d.title} max={LIMITS.title} required disabled={off} onChange={(v) => set({ ...d, title: v })} />
+      <AreaField label="Text" value={d.text} max={LIMITS.body} disabled={off} onChange={(v) => set({ ...d, text: v })} />
+      <p className="text-sm text-ink-muted">The details come from <strong className="text-ink">Menus &amp; footer → Contact details</strong>, so they stay the same everywhere.</p>
+      <Toggle label="Email" checked={d.showEmail} disabled={off} onChange={(v) => set({ ...d, showEmail: v })} />
+      <Toggle label="WhatsApp" checked={d.showWhatsapp} disabled={off} onChange={(v) => set({ ...d, showWhatsapp: v })} />
+      <Toggle label="Phone" checked={d.showPhone} disabled={off} onChange={(v) => set({ ...d, showPhone: v })} />
+      <Toggle label="Address" checked={d.showAddress} disabled={off} onChange={(v) => set({ ...d, showAddress: v })} />
+      <Toggle label="Opening hours" checked={d.showHours} disabled={off} onChange={(v) => set({ ...d, showHours: v })} />
+    </>
+  );
+}
+
 /** Properties form for one section. */
 export function SectionForm({ section, onChange, ctx }: { section: Section; onChange: (s: Section) => void; ctx: FormContext }) {
   const set = (data: Section["data"]) => onChange({ ...section, data } as Section);
@@ -289,6 +339,9 @@ export function SectionForm({ section, onChange, ctx }: { section: Section; onCh
     case "testimonials": return <TestimonialsForm s={section} set={set} ctx={ctx} />;
     case "faq": return <FaqForm s={section} set={set} ctx={ctx} />;
     case "cta": return <CtaForm s={section} set={set} ctx={ctx} />;
+    case "intro": return <IntroForm s={section} set={set} ctx={ctx} />;
+    case "text": return <TextForm s={section} set={set} ctx={ctx} />;
+    case "contact": return <ContactForm s={section} set={set} ctx={ctx} />;
   }
 }
 
