@@ -38,7 +38,7 @@ export const studentBottomNav: NavItem[] = [
 
 export const ownerNav: NavItem[] = [
   { label: "Overview", href: "/app/owner", icon: "home" },
-  { label: "Website", href: "/app/owner/website", icon: "globe", phase: 2, description: "Edit the landing page, menus, footer, SEO, media and brand settings." },
+  { label: "Website", href: "/app/owner/website", icon: "globe" },
   { label: "Courses", href: "/app/owner/courses", icon: "book", phase: 2, description: "Create, edit, preview and publish courses." },
   { label: "Assignments", href: "/app/owner/assignments", icon: "clipboard" },
   { label: "Categories", href: "/app/owner/categories", icon: "folder", phase: 2, description: "Category hierarchy, images, ordering and SEO." },
@@ -59,6 +59,7 @@ export const staffNav: NavItem[] = [
   { label: "Courses", href: "/app/staff/courses", icon: "book", permission: "courses.read" },
   { label: "Assignments", href: "/app/staff/assignments", icon: "clipboard", permission: "courses.edit" },
   { label: "Learners", href: "/app/staff/students", icon: "users", permission: "students.read" },
+  { label: "Website", href: "/app/staff/website", icon: "globe", permission: "cms.read" },
   { label: "Orders", href: "/app/staff/orders", icon: "cart", permission: "orders.read" },
   { label: "Payments", href: "/app/staff/payments", icon: "wallet", permission: "payments.read" },
   { label: "Support", href: "/app/staff/support", icon: "inbox", permission: "tickets.read", phase: 5, description: "Ticket queue and replies." },

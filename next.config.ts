@@ -13,6 +13,16 @@ const nextConfig: NextConfig = {
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
         ],
       },
+      {
+        // The website editor shows draft previews in a same-site frame.
+        // Later rules win, so this relaxes DENY for these pages only.
+        source: "/preview/:path*",
+        headers: [
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          { key: "Content-Security-Policy", value: "frame-ancestors 'self'" },
+          { key: "Cache-Control", value: "private, no-store" },
+        ],
+      },
     ];
   },
 };

@@ -206,6 +206,8 @@ export type CatalogueFilters = {
   category?: string;
   level?: CourseLevel;
   sort?: "newest" | "price_asc" | "price_desc" | "title";
+  /** Only these courses (used by the homepage's picked collections). */
+  ids?: string[];
 };
 
 export type CatalogueCourse = Pick<
@@ -238,6 +240,7 @@ export async function listPublishedCourses(filters: CatalogueFilters = {}, limit
   const q = filters.q ? sanitizeSearch(filters.q) : "";
   if (q) query = query.or(`title.ilike."%${q}%",subtitle.ilike."%${q}%"`);
   if (filters.level) query = query.eq("level", filters.level);
+  if (filters.ids) query = query.in("id", filters.ids.length ? filters.ids : ["00000000-0000-0000-0000-000000000000"]);
 
   switch (filters.sort) {
     case "price_asc":

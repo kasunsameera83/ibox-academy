@@ -39,6 +39,8 @@ Components never use raw colours or the brand name directly — they read from t
    12. `20261114110000_promotions.sql`
    13. `20261114120000_reports.sql`
    14. `20261114130000_security_hardening.sql` (no self-approval of payments, hidden video IDs, server-only audit log)
+   15. `20261114140000_promotion_hardening.sql` (30-minute coupon holds, limit on wrong codes)
+   16. `20261114150000_cms.sql` (website editor: pages, versions, media library)
 5. **Environment variables** — copy `.env.example` to `.env.local` and fill in
    `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
    (Supabase → Project Settings → API Keys).

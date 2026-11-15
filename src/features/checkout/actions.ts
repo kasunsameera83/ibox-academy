@@ -42,7 +42,9 @@ export async function startCheckoutAction(_prev: CheckoutState, formData: FormDa
     if (error) {
       return { fieldErrors: { coupon: [error.code === "22023" ? `${error.message}.` : "The code couldn't be checked."] }, values };
     }
-    price = Number((data as { total: number }).total);
+    const result = data as { total?: number; error?: string };
+    if (result.error) return { fieldErrors: { coupon: [`${result.error}.`] }, values };
+    price = Number(result.total);
   }
 
   if (price > 0 && method !== "payhere" && method !== "bank_transfer") {

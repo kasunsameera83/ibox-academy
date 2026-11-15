@@ -5,11 +5,27 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-/** Allows only same-site relative paths, to prevent open redirects. */
+/**
+ * Only same-site paths are allowed after sign-in. Browsers ignore tabs and
+ * new lines inside URLs and treat "\\" like "/", so "/<tab>/evil.com" or
+ * "/\\evil.com" could become an off-site link. Reject those characters, then
+ * resolve against a dummy origin and keep the result only if it stays there.
+ */
 export function safeNextPath(value: unknown, fallback = "/app"): string {
-  if (typeof value !== "string") return fallback;
-  if (!value.startsWith("/") || value.startsWith("//") || value.startsWith("/\\")) return fallback;
-  return value;
+  if (typeof value !== "string" || value.length > 2000) return fallback;
+  // Control characters, spaces and backslashes are never needed in our paths.
+  if (/[\u0000-\u0020\u007f\\]/.test(value)) return fallback;
+  if (!value.startsWith("/") || value.startsWith("//")) return fallback;
+  try {
+    const base = "https://same-site.invalid";
+    const url = new URL(value, base);
+    const path = `${url.pathname}${url.search}${url.hash}`;
+    // Resolving "/..//x" gives "//x", which is off-site again.
+    if (url.origin !== base || path.startsWith("//")) return fallback;
+    return path;
+  } catch {
+    return fallback;
+  }
 }
 
 export function siteUrl(): string {

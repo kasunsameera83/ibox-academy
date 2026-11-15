@@ -122,6 +122,8 @@ export async function previewCouponAction(slug: string, code: string): Promise<{
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("preview_coupon", { p_course_id: course.id, p_code: clean });
   if (error) return { ok: false, error: error.code === "22023" ? `${error.message}.` : "The code couldn't be checked. Please try again." };
+  const result = data as { error?: string };
+  if (result.error) return { ok: false, error: `${result.error}.` };
   const p = data as { code: string; listPrice: number; discount: number; total: number };
   return { ok: true, preview: { code: p.code, listPrice: Number(p.listPrice), discount: Number(p.discount), total: Number(p.total) } };
 }
