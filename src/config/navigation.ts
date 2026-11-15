@@ -49,7 +49,7 @@ export const ownerNav: NavItem[] = [
   { label: "Promotions", href: "/app/owner/promotions", icon: "tag" },
   { label: "Support", href: "/app/owner/support", icon: "life-buoy" },
   { label: "Reports", href: "/app/owner/reports", icon: "chart" },
-  { label: "Security", href: "/app/owner/security", icon: "lock", phase: 4, description: "Login events, role changes, audit log and sessions." },
+  { label: "Security", href: "/app/owner/security", icon: "lock" },
   { label: "Settings", href: "/app/owner/settings", icon: "settings", phase: 4, description: "Platform identity, locale, email templates and payment settings." },
   { label: "My account", href: "/app/owner/account", icon: "user" },
 ];
@@ -64,6 +64,7 @@ export const staffNav: NavItem[] = [
   { label: "Payments", href: "/app/staff/payments", icon: "wallet", permission: "payments.read" },
   { label: "Support", href: "/app/staff/support", icon: "inbox", permission: "tickets.read" },
   { label: "Reports", href: "/app/staff/reports", icon: "chart", permission: "reports.read" },
+  { label: "Security", href: "/app/staff/security", icon: "lock", permission: "audit.read" },
   { label: "Settings", href: "/app/staff/settings", icon: "settings", description: "Profile, password, two-step verification and sessions." },
 ];
 

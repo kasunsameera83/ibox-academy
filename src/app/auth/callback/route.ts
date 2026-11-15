@@ -1,6 +1,7 @@
 import { after, NextResponse, type NextRequest } from "next/server";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { notifyWelcome } from "@/lib/email/notify";
+import { recordSignIn } from "@/lib/security/signin-log";
 import { createClient } from "@/lib/supabase/server";
 import { safeNextPath } from "@/lib/utils";
 
@@ -28,6 +29,9 @@ export async function GET(request: NextRequest) {
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
       welcome(data.user?.id);
+      // ?code= comes back from Google sign-in.
+      const h = new Headers(request.headers);
+      after(() => recordSignIn("google_signin", h, { userId: data.user?.id, email: data.user?.email }));
       return NextResponse.redirect(`${origin}${next}`);
     }
   } else if (tokenHash && type && OTP_TYPES.includes(type)) {

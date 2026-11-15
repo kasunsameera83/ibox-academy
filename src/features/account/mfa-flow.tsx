@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { createClient } from "@/lib/supabase/client";
 import { signOutAction } from "@/app/(auth)/actions";
+import { recordMfaFailureAction } from "@/features/account/actions";
 
 type Mode =
   | { kind: "loading" }
@@ -71,6 +72,7 @@ export function MfaFlow({ mode: flowMode = "signin", onDone }: { mode?: "signin"
     const { error: verifyError } = await supabase.auth.mfa.challengeAndVerify({ factorId: mode.factorId, code: code.trim() });
     setBusy(false);
     if (verifyError) {
+      void recordMfaFailureAction().catch(() => {});
       setError(friendlyError(verifyError.message));
       setCode("");
       return;

@@ -12,7 +12,7 @@ let transport: Transporter | null = null;
 function getTransport(): Transporter {
   if (transport) return transport;
   const port = Number(process.env.SMTP_PORT || 465);
-  transport = nodemailer.createTransport({
+  const created = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
     port,
     // 465 is TLS from the start; 587 upgrades with STARTTLS (required, never plain text).
@@ -23,7 +23,8 @@ function getTransport(): Transporter {
     greetingTimeout: 10_000,
     socketTimeout: 20_000,
   });
-  return transport;
+  transport = created;
+  return created;
 }
 
 export type OutgoingEmail = { to: string; subject: string; html: string; text: string };

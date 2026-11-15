@@ -1,9 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
+import { after } from "next/server";
 import { z } from "zod";
 import { recordAudit } from "@/lib/audit";
-import { requireUser } from "@/lib/dal/session";
+import { getCurrentUser, requireUser } from "@/lib/dal/session";
+import { recordSignIn } from "@/lib/security/signin-log";
 import type { FormState } from "@/lib/forms";
 import { createClient } from "@/lib/supabase/server";
 import { resetPasswordSchema } from "@/lib/validation/auth";
@@ -47,4 +50,21 @@ export async function recordSecurityEventAction(action: "account.mfa_enabled" | 
   const user = await requireUser();
   const supabase = await createClient();
   await recordAudit(user.id, action, { type: "profile", id: user.id });
+}
+
+/**
+ * Logs a wrong two-step code for the Security page. The code is checked in the
+ * browser by Supabase, so this only records that it failed; the account comes
+ * from the signed-in session, never from the browser.
+ */
+export async function recordMfaFailureAction() {
+  const user = await getCurrentUser();
+  if (!user) return;
+  const h = await headers();
+  const snapshot = new Headers();
+  for (const name of ["x-real-ip", "x-forwarded-for", "user-agent"]) {
+    const v = h.get(name);
+    if (v) snapshot.set(name, v);
+  }
+  after(() => recordSignIn("mfa_failed", snapshot, { userId: user.id, email: user.email }));
 }

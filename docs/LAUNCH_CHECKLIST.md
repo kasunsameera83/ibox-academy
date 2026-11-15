@@ -5,7 +5,7 @@ Items marked **Blocker** should be done before real learners pay.
 
 ## 1. Database (Supabase)
 
-- [ ] **Blocker** Run every migration in `supabase/migrations/`, in order, up to `20261115100000_email_log.sql` (README lists them).
+- [ ] **Blocker** Run every migration in `supabase/migrations/`, in order, up to `20261115110000_security_center.sql` (README lists them).
 - [ ] Open **Advisors → Security Advisor** in the Supabase dashboard and fix anything marked as an error.
 - [ ] Optional: run `supabase/tests/access_rules.sql` on a local or staging database. It runs 54 access checks for a visitor, a learner, staff and the Owner, prints PASS/FAIL, and rolls everything back. All 54 pass on the current migrations.
 - [ ] Backups: check which backups your plan includes, and download a backup before launch day.

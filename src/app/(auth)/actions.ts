@@ -1,7 +1,11 @@
 "use server";
 
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { z } from "zod";
+import { recordSignIn } from "@/lib/security/signin-log";
+import type { SigninEvent } from "@/lib/security/labels";
 import { createClient } from "@/lib/supabase/server";
 import type { FormState } from "@/lib/forms";
 import { safeNextPath, siteUrl } from "@/lib/utils";
@@ -16,6 +20,17 @@ function fieldErrors(error: z.ZodError) {
   return z.flattenError(error).fieldErrors as Record<string, string[]>;
 }
 
+/** Logs a sign-in event for the Security page, after the response is sent. */
+async function logSignIn(event: SigninEvent, who: { userId?: string | null; email?: string | null }) {
+  const h = await headers();
+  const snapshot = new Headers();
+  for (const name of ["x-real-ip", "x-forwarded-for", "user-agent"]) {
+    const v = h.get(name);
+    if (v) snapshot.set(name, v);
+  }
+  after(() => recordSignIn(event, snapshot, who));
+}
+
 function isRateLimited(error: { status?: number; code?: string }) {
   return error.status === 429 || error.code === "over_request_rate_limit" || error.code === "over_email_send_rate_limit";
 }
@@ -26,9 +41,10 @@ export async function signInAction(_prev: FormState, formData: FormData): Promis
   if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error), values: { email } };
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword(parsed.data);
+  const { data, error } = await supabase.auth.signInWithPassword(parsed.data);
 
   if (error) {
+    if (!isRateLimited(error)) await logSignIn("signin_failed", { email: parsed.data.email });
     if (isRateLimited(error)) {
       return { error: "Too many attempts. Please wait a few minutes and try again.", values: { email } };
     }
@@ -38,6 +54,7 @@ export async function signInAction(_prev: FormState, formData: FormData): Promis
     // Generic message: never reveal whether an account exists.
     return { error: "Email or password is incorrect.", values: { email } };
   }
+  await logSignIn("signin", { userId: data.user?.id, email: parsed.data.email });
 
   redirect(safeNextPath(formData.get("next")));
 }
@@ -99,6 +116,7 @@ export async function forgotPasswordAction(_prev: FormState, formData: FormData)
     return { error: "Too many requests. Please wait a few minutes and try again.", values: { email } };
   }
 
+  if (!error) await logSignIn("password_reset_requested", { email: parsed.data.email });
   // Same message whether or not the account exists.
   return { success: "If an account exists for that email, we've sent a password reset link." };
 }
@@ -132,6 +150,8 @@ export async function resetPasswordAction(_prev: FormState, formData: FormData):
 
 export async function signOutAction() {
   const supabase = await createClient();
+  const { data } = await supabase.auth.getClaims();
+  if (data?.claims?.sub) await logSignIn("signout", { userId: data.claims.sub });
   await supabase.auth.signOut();
   redirect("/login?signed_out=1");
 }
