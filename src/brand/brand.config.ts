@@ -50,8 +50,8 @@ export const brand = {
   /** Empty values are hidden in the UI. */
   contact: {
     email: "hello@iboxacademy.com",
-    phone: "",
-    whatsapp: "",
+    phone: "+94 75 526 9644",
+    whatsapp: "+94 75 526 9644",
     address: "Sri Lanka",
   },
 

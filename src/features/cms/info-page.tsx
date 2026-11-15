@@ -4,10 +4,16 @@ import { PAGE_DEFS } from "@/lib/cms/pages";
 import { getMediaMap, getPublishedPage, getSiteSettings } from "@/lib/dal/cms";
 import { PageSections } from "./page-sections";
 
-/** About, Contact, Help and Policies: published content from Website, or "coming soon" until the first publish. */
+/** Published content when there is some, else the built-in starter (if it's ready to show). */
+async function liveContent(slug: string) {
+  const def = PAGE_DEFS[slug];
+  return (await getPublishedPage(slug)) ?? (def.liveBeforePublish ? def.starter : null);
+}
+
+/** About, Contact, Help and Policies: published content from Website, or the built-in text until the first publish. */
 export async function InfoPage({ slug }: { slug: string }) {
   const def = PAGE_DEFS[slug];
-  const [content, site] = await Promise.all([getPublishedPage(slug), getSiteSettings()]);
+  const [content, site] = await Promise.all([liveContent(slug), getSiteSettings()]);
   if (!content) {
     return (
       <div className="mx-auto max-w-[1280px] px-4 py-12 sm:px-6 lg:px-8">
@@ -20,7 +26,7 @@ export async function InfoPage({ slug }: { slug: string }) {
 
 export async function infoPageMetadata(slug: string): Promise<Metadata> {
   const def = PAGE_DEFS[slug];
-  const content = await getPublishedPage(slug);
+  const content = await liveContent(slug);
   if (!content) return { title: def.label, robots: { index: false } };
   const { seo } = content;
   const intro = content.sections.find((s) => s.type === "intro" && s.enabled);
